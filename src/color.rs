@@ -43,6 +43,22 @@ impl ops::Add<Color> for Color {
     }
 }
 
+impl ops::Mul<f64> for Color {
+    type Output = Color;
+
+    fn mul(self, t: f64) -> Color {
+        Color::new(t * self.r(), t * self.g(), t * self.b())
+    }
+}
+
+impl ops::Mul<Color> for f64 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Color {
+        rhs * self
+    }
+}
+
 #[test]
 fn test_color_ops() {
     let v1 = Color::new(1.0, 2.0, 3.0);

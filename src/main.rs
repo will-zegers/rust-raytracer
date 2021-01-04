@@ -5,9 +5,14 @@ use std::path::Path;
 use std::str::FromStr;
 
 mod color;
-use color::Color;
 
-fn main() -> std::io::Result<()> {
+mod ray;
+use crate::ray::Ray;
+
+mod vec3;
+use crate::vec3::{Point3, Vec3};
+
+fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
         print_usage(&args[0]);
@@ -15,8 +20,9 @@ fn main() -> std::io::Result<()> {
     }
 
     let path = Path::new(&args[1]);
-    let mut file = File::create(&path)?;
+    let mut file = File::create(&path).expect("could not open file for writing");
 
+    // Image specs
     let (image_width, image_height) = match parse_dimensions(&args[2]) {
         Some(dims) => dims,
         None => {
@@ -24,24 +30,36 @@ fn main() -> std::io::Result<()> {
             std::process::exit(1);
         }
     };
+    let aspect_ratio = (image_width / image_height) as i32;
+
+    // Camera
+    let viewport_height = 2.0;
+    let viewport_width = (aspect_ratio as f64) * viewport_height;
+    let focal_length = 1.0;
+
+    let origin = Point3::new(0.0, 0.0, 0.0);
+    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
+    let vertical = Vec3::new(0.0, viewport_height, 0.0);
+    let lower_left_corner =
+        &origin - &horizontal / 2.0 - &vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
 
     let header = format!("P3\n{} {}\n255\n", image_width, image_height);
-    file.write_all(header.as_bytes())?;
+    file.write_all(header.as_bytes()).expect("could not write to ppm file");
 
     for j in (0..image_height).rev() {
         print!("Scan lines remaining: {}\r", j);
         io::stdout().flush().unwrap();
         for i in 0..image_width {
-            let pixel_color = Color::new(
-                i as f64 / (image_width - 1) as f64,
-                j as f64 / (image_height - 1) as f64,
-                0.25,
-            );
-            color::write_color(&mut file, pixel_color)?;
+            let u = (i as f64) / (image_width - 1) as f64;
+            let v = (j as f64) / (image_height - 1) as f64;
+
+            let direction = &lower_left_corner + u * &horizontal + v * &vertical - &origin;
+            let r = Ray::new(&origin, direction);
+            let pixel_color = r.color();
+
+            color::write_color(&mut file, pixel_color).expect("could not write to ppm file");
         }
     }
-
-    Ok(())
 }
 
 fn print_usage(name: &str) {
