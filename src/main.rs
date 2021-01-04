@@ -1,9 +1,13 @@
 use std::fs::File;
+use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 use std::str::FromStr;
 
-fn main() {
+mod color;
+use color::Color;
+
+fn main() -> std::io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
         print_usage(&args[0]);
@@ -11,50 +15,38 @@ fn main() {
     }
 
     let path = Path::new(&args[1]);
-    let mut file = match File::create(&path) {
-        Err(why) => panic!("Could not create file {}: {}", path.display(), why),
-        Ok(file) => file,
-    };
+    let mut file = File::create(&path)?;
 
     let (image_width, image_height) = match parse_dimensions(&args[2]) {
         Some(dims) => dims,
         None => {
-            writeln!(std::io::stderr(), "Error parsing dimensions.").unwrap();
-            writeln!(std::io::stderr(), "").unwrap();
             print_usage(&args[0]);
             std::process::exit(1);
-        },
+        }
     };
 
     let header = format!("P3\n{} {}\n255\n", image_width, image_height);
-    file.write_all(header.as_bytes())
-        .expect("Error writing to file");
+    file.write_all(header.as_bytes())?;
 
     for j in (0..image_height).rev() {
+        print!("Scan lines remaining: {}\r", j);
+        io::stdout().flush().unwrap();
         for i in 0..image_width {
-            let r = i as f64 / (image_width - 1) as f64;
-            let g = j as f64 / (image_height - 1) as f64;
-            let b = 0.25;
-
-            let ir = (255.999 * r) as i32;
-            let ig = (255.999 * g) as i32;
-            let ib = (255.999 * b) as i32;
-
-            let pixel = format!("{} {} {}\n", ir, ig, ib);
-            file.write_all(pixel.as_bytes())
-                .expect("Error writing to file");
+            let pixel_color = Color::new(
+                i as f64 / (image_width - 1) as f64,
+                j as f64 / (image_height - 1) as f64,
+                0.25,
+            );
+            color::write_color(&mut file, pixel_color)?;
         }
     }
+
+    Ok(())
 }
 
 fn print_usage(name: &str) {
     writeln!(std::io::stderr(), "Usage: {} FILE DIMENSIONS", name).unwrap();
-    writeln!(
-        std::io::stderr(),
-        "Example: {} ./image.ppm 256x256",
-        name
-    )
-    .unwrap();
+    writeln!(std::io::stderr(), "Example: {} ./image.ppm 256x256", name).unwrap();
 }
 
 /// Parse the string `s` as a coordinate pair, like `"400x600"`.
