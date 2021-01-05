@@ -30,7 +30,7 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let aspect_ratio = (image_width / image_height) as i32;
+    let aspect_ratio = image_width as f64 / image_height as f64;
 
     // Camera
     let viewport_height = 2.0;
@@ -50,8 +50,8 @@ fn main() {
         print!("Scan lines remaining: {}\r", j);
         io::stdout().flush().unwrap();
         for i in 0..image_width {
-            let u = (i as f64) / (image_width - 1) as f64;
-            let v = (j as f64) / (image_height - 1) as f64;
+            let u = (i as f64) / ((image_width - 1) as f64);
+            let v = (j as f64) / ((image_height - 1) as f64);
 
             let direction = &lower_left_corner + u * &horizontal + v * &vertical - &origin;
             let r = Ray::new(&origin, direction);

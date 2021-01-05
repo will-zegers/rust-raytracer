@@ -1,5 +1,6 @@
 
 use crate::color::Color;
+use crate::vec3;
 use crate::vec3::{Point3, Vec3};
 
 #[allow(dead_code)]
@@ -19,6 +20,11 @@ impl<'a> Ray<'a> {
     }
 
     pub fn color(&self) -> Color {
+        let sphere_center = Point3::new(0.0, 0.0, -1.0);
+        let radius = 0.5;
+        if hit_sphere(sphere_center, radius, &self) {
+            return Color::new(1.0, 0.0, 0.0)
+        }
         let unit_direction = self.direction.unit_vector();
         let t = 0.5 * (unit_direction.y() + 1.0);
         (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
@@ -46,29 +52,45 @@ fn test_ray_at() {
     let r = Ray::new(&p, v);
 
     let point3_at = r.at(3.0);
-    assert_eq!(point3_at.x(), 6.0);
-    assert_eq!(point3_at.y(), 12.0);
-    assert_eq!(point3_at.z(), 24.0);
+    assert_eq!(point3_at, Point3::new(6.0, 12.0, 24.0));
 }
 
 #[test]
 fn test_ray_color() {
     let origin = Point3::new(0.0, 0.0, 0.0);
+
     let r = Ray::new(&origin, Vec3::new(0.0, -1.0, 0.0));
     let c_white = r.color();
-    assert_eq!(c_white.r(), 1.0);
-    assert_eq!(c_white.g(), 1.0);
-    assert_eq!(c_white.b(), 1.0);
+    assert_eq!(c_white, Color::new(1.0, 1.0, 1.0));
 
     let r = Ray::new(&origin, Vec3::new(1.0, 0.0, 1.0));
     let c_mid = r.color();
-    assert_eq!(c_mid.r(), 0.75);
-    assert_eq!(c_mid.g(), 0.85);
-    assert_eq!(c_mid.b(), 1.0);
+    assert_eq!(c_mid, Color::new(0.75, 0.85, 1.0));
 
     let r = Ray::new(&origin, Vec3::new(0.0, 1.0, 0.0));
     let c_blue = r.color();
-    assert_eq!(c_blue.r(), 0.5);
-    assert_eq!(c_blue.g(), 0.7);
-    assert_eq!(c_blue.b(), 1.0);
+    assert_eq!(c_blue, Color::new(0.5, 0.7, 1.0));
+}
+
+fn hit_sphere(center: Point3, radius: f64, ray: &Ray) -> bool {
+    let origin_to_center = ray.origin - center;
+    let a = vec3::dot(&ray.direction, &ray.direction);
+    let b = 2.0 * vec3::dot(&origin_to_center, &ray.direction);
+    let c = vec3::dot(&origin_to_center, &origin_to_center) - radius*radius;
+
+    let discriminant = b*b - 4.0*a*c;
+    discriminant > 0.0
+}
+
+#[test]
+fn test_ray_hit_sphere() {
+    let origin = Point3::new(0.0, 0.0, 0.0);
+
+    let r = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
+    let c_hit = r.color();
+    assert_eq!(c_hit, Color::new(1.0, 0.0, 0.0));
+
+    let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 0.0));
+    let c_miss = r.color();
+    assert_ne!(c_miss, Color::new(1.0, 0.0, 0.0));
 }
