@@ -44,7 +44,8 @@ fn main() {
         &origin - &horizontal / 2.0 - &vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
 
     let header = format!("P3\n{} {}\n255\n", image_width, image_height);
-    file.write_all(header.as_bytes()).expect("could not write to ppm file");
+    file.write_all(header.as_bytes())
+        .expect("could not write to ppm file");
 
     for j in (0..image_height).rev() {
         print!("Scan lines remaining: {}\r", j);
@@ -84,11 +85,16 @@ fn parse_dimensions(s: &str) -> Option<(i32, i32)> {
     }
 }
 
-#[test]
-fn test_parse_dimensions() {
-    assert_eq!(parse_dimensions(""), None);
-    assert_eq!(parse_dimensions("10x"), None);
-    assert_eq!(parse_dimensions("x10"), None);
-    assert_eq!(parse_dimensions("10x20"), Some((10, 20)));
-    assert_eq!(parse_dimensions("10x20foo"), None);
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_parse_dimensions() {
+        assert_eq!(parse_dimensions(""), None);
+        assert_eq!(parse_dimensions("10x"), None);
+        assert_eq!(parse_dimensions("x10"), None);
+        assert_eq!(parse_dimensions("10x20"), Some((10, 20)));
+        assert_eq!(parse_dimensions("10x20foo"), None);
+    }
 }
