@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::ops;
 
+use crate::vec3::Vec3;
+
 #[derive(Debug)]
 pub struct Color(f64, f64, f64);
 
@@ -37,6 +39,14 @@ impl ops::Add<Color> for Color {
     }
 }
 
+impl ops::AddAssign<Color> for Color {
+    fn add_assign(&mut self, other: Color) {
+        self.0 += other.0;
+        self.1 += other.1;
+        self.2 += other.2;
+    }
+}
+
 impl ops::Mul<f64> for Color {
     type Output = Color;
 
@@ -53,15 +63,31 @@ impl ops::Mul<Color> for f64 {
     }
 }
 
-pub fn write_color(file: &mut File, pixel_color: Color) -> std::io::Result<()> {
-    let ir = (255.999 * pixel_color.r()) as i32;
-    let ig = (255.999 * pixel_color.g()) as i32;
-    let ib = (255.999 * pixel_color.b()) as i32;
+pub fn write_color(file: &mut File, pixel_color: Color, samples_per_pixel: i32) -> std::io::Result<()> {
+    let scale = 1.0 / (samples_per_pixel as f64);
+
+    let ir = (256. * clamp(scale * pixel_color.r(), 0., 0.999)) as i32;
+    let ig = (256. * clamp(scale * pixel_color.g(), 0., 0.999)) as i32;
+    let ib = (256. * clamp(scale * pixel_color.b(), 0., 0.999)) as i32;
 
     let pixel = format!("{} {} {}\n", ir, ig, ib);
     file.write_all(pixel.as_bytes())?;
 
     Ok(())
+}
+
+#[allow(dead_code)]
+fn clamp(x: f64, min: f64, max: f64) -> f64 {
+    if x < min {
+        return min;
+    } else if x > max {
+        return max;
+    }
+    x
+}
+
+pub fn vec3_to_color(v: Vec3) -> Color {
+    Color::new(v.x(), v.y(), v.z())
 }
 
 #[cfg(test)]

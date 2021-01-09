@@ -1,12 +1,13 @@
-
+use crate::color;
 use crate::color::Color;
-use crate::vec3;
+
+use crate::hittable::{HitRecord, Hittable};
+
 use crate::vec3::{Point3, Vec3};
 
-#[allow(dead_code)]
 pub struct Ray<'a> {
-    origin: &'a Point3,
-    direction: Vec3,
+    pub origin: &'a Point3,
+    pub direction: Vec3,
 }
 
 impl<'a> Ray<'a> {
@@ -18,39 +19,21 @@ impl<'a> Ray<'a> {
         self.origin + t * &self.direction
     }
 
-    pub fn color(&self) -> Color {
-        let center = Point3::new(0.0, 0.0, -1.0);
-        let radius = 0.5;
-        let t = hit_sphere(&center, radius, &self);
-        if t > 0. {
-            let v = self.at(t) - center;
-            let u = v.unit_vector();
-            return 0.5 * Color::new(u.x() + 1., u.y() + 1., u.z() + 1.);
+    pub fn color(&self, world: &dyn Hittable) -> Color {
+        let mut rec = HitRecord::new();
+        if world.hit(&self, 0., std::f64::INFINITY, &mut rec) {
+            return 0.5 * (color::vec3_to_color(rec.normal) + Color::new(1., 1., 1.));
         }
-
         let unit_direction = self.direction.unit_vector();
         let t = 0.5 * (unit_direction.y() + 1.0);
         (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
     }
 }
 
-fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> f64 {
-    let origin_to_center = ray.origin - center;
-    let a = vec3::dot(&ray.direction, &ray.direction);
-    let b = 2.0 * vec3::dot(&origin_to_center, &ray.direction);
-    let c = vec3::dot(&origin_to_center, &origin_to_center) - radius * radius;
-
-    let discriminant = b * b - 4.0 * a * c;
-    if discriminant < 0.0 {
-        return -1.;
-    }
-
-    (-b - f64::sqrt(discriminant)) / (2. * a)
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::sphere::Sphere;
 
     #[test]
     fn test_ray_new() {
@@ -79,30 +62,32 @@ mod test {
     #[test]
     fn test_ray_color() {
         let origin = Point3::new(0.0, 0.0, 0.0);
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
 
         let r = Ray::new(&origin, Vec3::new(0.0, -1.0, 0.0));
-        let c_white = r.color();
+        let c_white = r.color(&sphere);
         assert_eq!(c_white, Color::new(1.0, 1.0, 1.0));
 
         let r = Ray::new(&origin, Vec3::new(1.0, 0.0, 1.0));
-        let c_mid = r.color();
+        let c_mid = r.color(&sphere);
         assert_eq!(c_mid, Color::new(0.75, 0.85, 1.0));
 
         let r = Ray::new(&origin, Vec3::new(0.0, 1.0, 0.0));
-        let c_blue = r.color();
+        let c_blue = r.color(&sphere);
         assert_eq!(c_blue, Color::new(0.5, 0.7, 1.0));
     }
 
     #[test]
     fn test_ray_hit_sphere() {
         let origin = Point3::new(0.0, 0.0, 0.0);
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
 
         let r = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
-        let c_hit = r.color();
+        let c_hit = r.color(&sphere);
         assert_eq!(c_hit, Color::new(0.5, 0.5, 1.0));
 
         let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 0.0));
-        let c_miss = r.color();
+        let c_miss = r.color(&sphere);
         assert_ne!(c_miss, Color::new(1.0, 0.0, 0.0));
     }
 }

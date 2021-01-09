@@ -1,6 +1,6 @@
 use std::ops;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Vec3(f64, f64, f64);
 pub type Point3 = Vec3;
 

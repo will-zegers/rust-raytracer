@@ -4,13 +4,24 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::str::FromStr;
 
+use rand::Rng;
+
+mod camera;
+use crate::camera::Camera;
+
 mod color;
+use crate::color::Color;
+
+mod hittable;
+use crate::hittable::HittableList;
 
 mod ray;
-use crate::ray::Ray;
+
+mod sphere;
+use crate::sphere::Sphere;
 
 mod vec3;
-use crate::vec3::{Point3, Vec3};
+use crate::vec3::Point3;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -22,7 +33,7 @@ fn main() {
     let path = Path::new(&args[1]);
     let mut file = File::create(&path).expect("could not open file for writing");
 
-    // Image specs
+    // Image
     let (image_width, image_height) = match parse_dimensions(&args[2]) {
         Some(dims) => dims,
         None => {
@@ -31,34 +42,34 @@ fn main() {
         }
     };
     let aspect_ratio = image_width as f64 / image_height as f64;
+    let samples_per_pixel = 10;
+
+    // World
+    let mut world = HittableList::new();
+    world.add(Box::new(Sphere::new(Point3::new(0., 0., -1.), 0.5)));
+    world.add(Box::new(Sphere::new(Point3::new(0., -100.5, -1.), 100.)));
 
     // Camera
-    let viewport_height = 2.0;
-    let viewport_width = (aspect_ratio as f64) * viewport_height;
-    let focal_length = 1.0;
-
-    let origin = Point3::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        &origin - &horizontal / 2.0 - &vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+    let camera = Camera::new(aspect_ratio);
 
     let header = format!("P3\n{} {}\n255\n", image_width, image_height);
     file.write_all(header.as_bytes())
         .expect("could not write to ppm file");
 
+    let mut rng = rand::thread_rng();
     for j in (0..image_height).rev() {
-        print!("Scan lines remaining: {}\r", j);
+        print!("Scan lines remaining: {} \r", j);
         io::stdout().flush().unwrap();
         for i in 0..image_width {
-            let u = (i as f64) / ((image_width - 1) as f64);
-            let v = (j as f64) / ((image_height - 1) as f64);
+            let mut pixel_color = Color::new(0., 0., 0.);
+            for _ in 0..samples_per_pixel {
+                let u = ((i as f64) + rng.gen::<f64>()) / ((image_width - 1) as f64);
+                let v = ((j as f64) + rng.gen::<f64>()) / ((image_height - 1) as f64);
+                let r = camera.get_ray(u, v);
+                pixel_color += r.color(&world);
+            }
 
-            let direction = &lower_left_corner + u * &horizontal + v * &vertical - &origin;
-            let r = Ray::new(&origin, direction);
-            let pixel_color = r.color();
-
-            color::write_color(&mut file, pixel_color).expect("could not write to ppm file");
+            color::write_color(&mut file, pixel_color, samples_per_pixel).expect("could not write to ppm file");
         }
     }
 }
