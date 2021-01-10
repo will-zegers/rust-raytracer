@@ -2,8 +2,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::ops;
 
-use crate::vec3::Vec3;
-
 #[derive(Debug)]
 pub struct Color(f64, f64, f64);
 
@@ -63,12 +61,21 @@ impl ops::Mul<Color> for f64 {
     }
 }
 
-pub fn write_color(file: &mut File, pixel_color: Color, samples_per_pixel: i32) -> std::io::Result<()> {
+pub fn write_color(
+    file: &mut File,
+    pixel_color: Color,
+    samples_per_pixel: i32,
+) -> std::io::Result<()> {
     let scale = 1.0 / (samples_per_pixel as f64);
 
-    let ir = (256. * clamp(scale * pixel_color.r(), 0., 0.999)) as i32;
-    let ig = (256. * clamp(scale * pixel_color.g(), 0., 0.999)) as i32;
-    let ib = (256. * clamp(scale * pixel_color.b(), 0., 0.999)) as i32;
+    // sqrt for gamma 2 correction
+    let r = f64::sqrt(scale * pixel_color.r());
+    let g = f64::sqrt(scale * pixel_color.g());
+    let b = f64::sqrt(scale * pixel_color.b());
+
+    let ir = (256. * clamp(r, 0., 0.999)) as i32;
+    let ig = (256. * clamp(g, 0., 0.999)) as i32;
+    let ib = (256. * clamp(b, 0., 0.999)) as i32;
 
     let pixel = format!("{} {} {}\n", ir, ig, ib);
     file.write_all(pixel.as_bytes())?;
@@ -84,10 +91,6 @@ fn clamp(x: f64, min: f64, max: f64) -> f64 {
         return max;
     }
     x
-}
-
-pub fn vec3_to_color(v: Vec3) -> Color {
-    Color::new(v.x(), v.y(), v.z())
 }
 
 #[cfg(test)]

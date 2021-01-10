@@ -47,7 +47,6 @@ impl Hittable for Sphere {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::color::Color;
     use crate::ray::Ray;
     use crate::vec3::{Point3, Vec3};
 
@@ -56,12 +55,14 @@ mod test {
         let origin = Point3::new(0.0, 0.0, 0.0);
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
 
-        let r = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
-        let c_hit = r.color(&sphere);
-        assert_eq!(c_hit, Color::new(0.5, 0.5, 1.0));
+        let mut rec = HitRecord::new();
+        let t_min = 0.;
+        let t_max = std::f64::INFINITY;
 
-        let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 0.0));
-        let c_miss = r.color(&sphere);
-        assert_ne!(c_miss, Color::new(1.0, 0.0, 0.0));
+        let r = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
+        assert!(sphere.hit(&r, t_min, t_max, &mut rec));
+
+        let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 1.0));
+        assert!(!sphere.hit(&r, t_min, t_max, &mut rec));
     }
 }

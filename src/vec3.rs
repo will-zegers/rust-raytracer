@@ -1,5 +1,7 @@
 use std::ops;
 
+use rand::Rng;
+
 #[derive(Clone, Debug)]
 pub struct Vec3(f64, f64, f64);
 pub type Point3 = Vec3;
@@ -61,6 +63,14 @@ impl ops::Add<Vec3> for &Vec3 {
 
     fn add(self, rhs: Vec3) -> Vec3 {
         self + &rhs
+    }
+}
+
+impl ops::Add<&Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn add(self, rhs: &Vec3) -> Vec3 {
+        &self + rhs
     }
 }
 
@@ -150,6 +160,44 @@ pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.0 * v.0 + u.1 * v.1 + u.2 * v.2
 }
 
+pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
+    let mut in_unit_sphere = random_in_unit_sphere();
+    if dot(&in_unit_sphere, &normal) <= 0. {
+        //In the same hemisphere as the normal
+        println!("In same: {:?}", in_unit_sphere);
+        in_unit_sphere = -in_unit_sphere;
+    }
+    println!("Not same: {:?}", in_unit_sphere);
+    in_unit_sphere
+}
+
+/// For 'true' Lambertian diffuse scattering
+#[allow(dead_code)]
+pub fn random_unit_vector() -> Vec3 {
+    random_in_unit_sphere().unit_vector()
+}
+
+/// Simplified diffuse scattering
+pub fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let v = random(-1., 1.);
+        if v.length_squared() >= 1. {
+            continue;
+        }
+        return v;
+    }
+}
+
+/// Generate a random 3-vector
+fn random(min: f64, max: f64) -> Vec3 {
+    let mut rng = rand::thread_rng();
+    Vec3(
+        rng.gen_range(min..max),
+        rng.gen_range(min..max),
+        rng.gen_range(min..max),
+    )
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -229,5 +277,34 @@ mod test {
 
         let res = dot(&v1, &v2);
         assert_eq!(res, 47.0);
+    }
+
+    #[test]
+    fn test_vec3_random() {
+        let min = -1.;
+        let max = 1.;
+
+        let v1 = random(min, max);
+        let v2 = random(min, max);
+        assert_ne!(v1, v2);
+    }
+
+    #[test]
+    fn test_vec3_random_in_unit_sphere() {
+        let v = random_in_unit_sphere();
+        assert!(v.length_squared() < 1.)
+    }
+
+    #[test]
+    fn test_vec3_random_unit_vector() {
+        let v = random_unit_vector();
+        assert!(f64::abs(1.0 - v.length()) < 1e-9);
+    }
+
+    #[test]
+    fn test_vec3_random_in_hemisphere() {
+        let normal = Vec3(0., 0., -1.);
+        let in_unit_sphere = random_in_hemisphere(&normal);
+        assert!(dot(&in_unit_sphere, &normal) > 0.)
     }
 }

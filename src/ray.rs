@@ -1,10 +1,11 @@
-use crate::color;
 use crate::color::Color;
 
 use crate::hittable::{HitRecord, Hittable};
 
+use crate::vec3;
 use crate::vec3::{Point3, Vec3};
 
+#[derive(Debug)]
 pub struct Ray<'a> {
     pub origin: &'a Point3,
     pub direction: Vec3,
@@ -19,14 +20,29 @@ impl<'a> Ray<'a> {
         self.origin + t * &self.direction
     }
 
-    pub fn color(&self, world: &dyn Hittable) -> Color {
-        let mut rec = HitRecord::new();
-        if world.hit(&self, 0., std::f64::INFINITY, &mut rec) {
-            return 0.5 * (color::vec3_to_color(rec.normal) + Color::new(1., 1., 1.));
+    pub fn color(&self, world: &dyn Hittable, depth: i32) -> Color {
+        // If we've exceeded the ray bounce lmit, no more light in gathered.
+        if depth <= 0 {
+            return Color::new(0., 0., 0.);
         }
+
+        let mut rec = HitRecord::new();
+        if world.hit(&self, 0.01, std::f64::INFINITY, &mut rec) {
+            println!("{:?}", "HIT!");
+            let target = &rec.p + vec3::random_in_hemisphere(&rec.normal);
+            let ray = Ray::new(&rec.p, target - &rec.p);
+            return 0.5 * ray.color(world, depth - 1);
+        }
+
         let unit_direction = self.direction.unit_vector();
         let t = 0.5 * (unit_direction.y() + 1.0);
         (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
+    }
+}
+
+impl PartialEq for Ray<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.origin == other.origin && self.direction == other.direction
     }
 }
 
@@ -63,31 +79,34 @@ mod test {
     fn test_ray_color() {
         let origin = Point3::new(0.0, 0.0, 0.0);
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
+        let depth = 1;
 
         let r = Ray::new(&origin, Vec3::new(0.0, -1.0, 0.0));
-        let c_white = r.color(&sphere);
+        let c_white = r.color(&sphere, depth);
         assert_eq!(c_white, Color::new(1.0, 1.0, 1.0));
 
         let r = Ray::new(&origin, Vec3::new(1.0, 0.0, 1.0));
-        let c_mid = r.color(&sphere);
+        let c_mid = r.color(&sphere, depth);
         assert_eq!(c_mid, Color::new(0.75, 0.85, 1.0));
 
         let r = Ray::new(&origin, Vec3::new(0.0, 1.0, 0.0));
-        let c_blue = r.color(&sphere);
+        let c_blue = r.color(&sphere, depth);
         assert_eq!(c_blue, Color::new(0.5, 0.7, 1.0));
     }
 
     #[test]
     fn test_ray_hit_sphere() {
         let origin = Point3::new(0.0, 0.0, 0.0);
+
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
+        let mut rec = HitRecord::new();
+        let t_min = 0.;
+        let t_max = std::f64::INFINITY;
 
         let r = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
-        let c_hit = r.color(&sphere);
-        assert_eq!(c_hit, Color::new(0.5, 0.5, 1.0));
+        assert!(sphere.hit(&r, t_min, t_max, &mut rec));
 
-        let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 0.0));
-        let c_miss = r.color(&sphere);
-        assert_ne!(c_miss, Color::new(1.0, 0.0, 0.0));
+        let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 1.0));
+        assert!(!sphere.hit(&r, t_min, t_max, &mut rec));
     }
 }

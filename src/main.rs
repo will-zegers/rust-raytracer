@@ -43,6 +43,7 @@ fn main() {
     };
     let aspect_ratio = image_width as f64 / image_height as f64;
     let samples_per_pixel = 10;
+    let max_depth = 10;
 
     // World
     let mut world = HittableList::new();
@@ -66,10 +67,11 @@ fn main() {
                 let u = ((i as f64) + rng.gen::<f64>()) / ((image_width - 1) as f64);
                 let v = ((j as f64) + rng.gen::<f64>()) / ((image_height - 1) as f64);
                 let r = camera.get_ray(u, v);
-                pixel_color += r.color(&world);
+                pixel_color += r.color(&world, max_depth);
             }
 
-            color::write_color(&mut file, pixel_color, samples_per_pixel).expect("could not write to ppm file");
+            color::write_color(&mut file, pixel_color, samples_per_pixel)
+                .expect("could not write to ppm file");
         }
     }
 }
