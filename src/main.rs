@@ -17,7 +17,7 @@ mod hittable;
 use crate::hittable::HittableList;
 
 mod material;
-use crate::material::Lambertian;
+use crate::material::{Lambertian, Metal};
 
 mod ray;
 
@@ -49,25 +49,40 @@ fn main() {
     let samples_per_pixel = 10;
     let max_depth = 10;
 
+    // Camera
+    let camera = Camera::new(aspect_ratio);
+
     // World
     let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
     let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    let material_left   = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_right  = Rc::new(Metal::new(Color::new(0.6, 0.6, 0.2), 0.0));
 
+    // add some objects to our world for rays to intersect with.
     let mut world = HittableList::new();
     world.add(Box::new(Sphere::new(
         Point3::new(0., 0., -1.),
         0.5,
-        material_ground,
+        material_center,
     )));
     world.add(Box::new(Sphere::new(
         Point3::new(0., -100.5, -1.),
         100.,
-        material_center,
+        material_ground,
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(-1.0, 0., -1.),
+        0.5,
+        material_left,
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(1.0, 0., -1.),
+        0.5,
+        material_right,
     )));
 
-    // Camera
-    let camera = Camera::new(aspect_ratio);
-
+    // Render
+    // write the PPM header to file
     let header = format!("P3\n{} {}\n255\n", image_width, image_height);
     file.write_all(header.as_bytes())
         .expect("could not write to ppm file");

@@ -5,13 +5,12 @@ use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::{Point3, Vec3};
 
-
 #[derive(Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
-    pub material: Rc<dyn Material>,
+    pub material_rc: Rc<dyn Material>,
 }
 
 pub trait Hittable {
@@ -19,15 +18,6 @@ pub trait Hittable {
 }
 
 impl HitRecord {
-    // pub fn new(&ray: Ray, outward_normal: Vec3) -> HitRecord {
-    //     HitRecord {
-    //         p: Point3::new(0., 0., 0.),
-    //         normal: set_face_normal(&ray, outward_normal),
-    //         t: 0.,
-    //         material: Rc::new(Lambertian::new(Color::new(0., 0., 0.))),
-    //     }
-    // }
-
     pub fn get_face_normal(ray: &Ray, outward_normal: Vec3) -> Vec3 {
         let front_face = vec3::dot(&ray.direction, &outward_normal) < 0.;
         if front_face {
@@ -74,7 +64,7 @@ impl Hittable for HittableList {
                 Some(temp_rec) => {
                     closest_so_far = temp_rec.t;
                     rec = Some(temp_rec);
-                },
+                }
                 None => (),
             }
         }
@@ -155,14 +145,13 @@ mod test {
         let t_min = 0.;
         let t_max = std::f64::INFINITY;
 
-
         let r_hit = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
         rec = world.hit(&r_hit, t_min, t_max);
         let miss = rec.is_none();
         assert!(miss);
 
-        let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
+        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
         world.add(Box::new(sphere));
 
         rec = world.hit(&r_hit, t_min, t_max);

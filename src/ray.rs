@@ -20,20 +20,18 @@ impl<'a> Ray<'a> {
     }
 
     pub fn color(&self, world: &dyn Hittable, depth: i32) -> Color {
-        // If we've exceeded the ray bounce lmit, no more light in gathered.
+        // If we've exceeded the ray bounce lmit, no more light is gathered.
         if depth <= 0 {
             return Color::new(0., 0., 0.);
         }
 
         match world.hit(&self, 0.01, std::f64::INFINITY) {
-            Some(rec) => {
-                match rec.material.scatter(&self, &rec) {
-                    Some(scatter) => {
-                        return scatter.attenuation * scatter.ray.color(world, depth-1);
-                    }
-                    None => {
-                        return Color::new(0., 0., 0.);
-                    }
+            Some(rec) => match rec.material_rc.scatter(&self, &rec) {
+                Some(scatter) => {
+                    return scatter.attenuation * scatter.ray.color(world, depth - 1);
+                }
+                None => {
+                    return Color::new(0., 0., 0.);
                 }
             },
             None => (),
@@ -54,10 +52,10 @@ impl PartialEq for Ray<'_> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::rc::Rc;
     use crate::hittable::HitRecord;
     use crate::material::Lambertian;
     use crate::sphere::Sphere;
+    use std::rc::Rc;
 
     #[test]
     fn test_ray_new() {
@@ -86,8 +84,8 @@ mod test {
     #[test]
     fn test_ray_color() {
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
+        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         let depth = 1;
 
@@ -106,11 +104,11 @@ mod test {
 
     #[test]
     fn test_ray_hit_sphere() {
-        let rec: Option<HitRecord>;
+        let mut rec: Option<HitRecord>;
 
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
+        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         let t_min = 0.;
         let t_max = std::f64::INFINITY;
