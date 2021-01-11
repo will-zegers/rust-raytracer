@@ -1,12 +1,18 @@
+use std::rc::Rc;
+
+use crate::color::Color;
+use crate::material::{Lambertian, Material};
 use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::{Point3, Vec3};
+
 
 #[derive(Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
+    pub material: Rc<dyn Material>,
 }
 
 pub trait Hittable {
@@ -19,6 +25,7 @@ impl HitRecord {
             p: Point3::new(0., 0., 0.),
             normal: Vec3::new(0., 0., 0.),
             t: 0.,
+            material: Rc::new(Lambertian::new(Color::new(0., 0., 0.))),
         }
     }
 
@@ -78,6 +85,9 @@ impl Hittable for HittableList {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    use std::rc::Rc;
+
     use crate::ray::Ray;
     use crate::sphere::Sphere;
     use crate::vec3::{Point3, Vec3};
@@ -153,7 +163,9 @@ mod test {
         let miss = !world.hit(&r_hit, 0., std::f64::INFINITY, &mut rec);
         assert!(miss);
 
-        world.add(Box::new(Sphere::new(Point3::new(0., 0., -1.), 0.5)));
+        let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
+        world.add(Box::new(sphere));
 
         let hit = world.hit(&r_hit, 0., std::f64::INFINITY, &mut rec);
         assert!(hit);

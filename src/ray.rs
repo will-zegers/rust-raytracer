@@ -2,7 +2,6 @@ use crate::color::Color;
 
 use crate::hittable::{HitRecord, Hittable};
 
-use crate::vec3;
 use crate::vec3::{Point3, Vec3};
 
 #[derive(Debug)]
@@ -28,10 +27,14 @@ impl<'a> Ray<'a> {
 
         let mut rec = HitRecord::new();
         if world.hit(&self, 0.01, std::f64::INFINITY, &mut rec) {
-            println!("{:?}", "HIT!");
-            let target = &rec.p + vec3::random_in_hemisphere(&rec.normal);
-            let ray = Ray::new(&rec.p, target - &rec.p);
-            return 0.5 * ray.color(world, depth - 1);
+            match rec.material.scatter(&self, &rec) {
+                Some(scatter) => {
+                    return scatter.attenuation * scatter.ray.color(world, depth-1);
+                }
+                None => {
+                    return Color::new(0., 0., 0.);
+                }
+            }
         }
 
         let unit_direction = self.direction.unit_vector();
@@ -49,6 +52,8 @@ impl PartialEq for Ray<'_> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::rc::Rc;
+    use crate::material::Lambertian;
     use crate::sphere::Sphere;
 
     #[test]
@@ -78,7 +83,9 @@ mod test {
     #[test]
     fn test_ray_color() {
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
+        let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
+
         let depth = 1;
 
         let r = Ray::new(&origin, Vec3::new(0.0, -1.0, 0.0));
@@ -97,8 +104,9 @@ mod test {
     #[test]
     fn test_ray_hit_sphere() {
         let origin = Point3::new(0.0, 0.0, 0.0);
+        let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
 
-        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
         let mut rec = HitRecord::new();
         let t_min = 0.;
         let t_max = std::f64::INFINITY;

@@ -1,4 +1,7 @@
+use std::rc::Rc;
+
 use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::Point3;
@@ -6,11 +9,12 @@ use crate::vec3::Point3;
 pub struct Sphere {
     center: Point3,
     radius: f64,
+    material: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Sphere {
-        Sphere { center, radius }
+    pub fn new(center: Point3, radius: f64, material: Rc<dyn Material>) -> Sphere {
+        Sphere { center, radius, material }
     }
 }
 
@@ -38,6 +42,7 @@ impl Hittable for Sphere {
 
         rec.t = root;
         rec.p = ray.at(rec.t);
+        rec.material = self.material.clone();
         let outward_normal = (&rec.p - &self.center) / self.radius;
         rec.set_face_normal(&ray, outward_normal);
 
@@ -47,13 +52,16 @@ impl Hittable for Sphere {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::color::Color;
+    use crate::material::Lambertian;
     use crate::ray::Ray;
     use crate::vec3::{Point3, Vec3};
 
     #[test]
     fn test_sphere_hit() {
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5);
+        let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
 
         let mut rec = HitRecord::new();
         let t_min = 0.;

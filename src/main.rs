@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
+use std::rc::Rc;
 use std::str::FromStr;
 
 use rand::Rng;
@@ -14,6 +15,9 @@ use crate::color::Color;
 
 mod hittable;
 use crate::hittable::HittableList;
+
+mod material;
+use crate::material::Lambertian;
 
 mod ray;
 
@@ -46,9 +50,20 @@ fn main() {
     let max_depth = 10;
 
     // World
+    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+
     let mut world = HittableList::new();
-    world.add(Box::new(Sphere::new(Point3::new(0., 0., -1.), 0.5)));
-    world.add(Box::new(Sphere::new(Point3::new(0., -100.5, -1.), 100.)));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0., 0., -1.),
+        0.5,
+        material_ground,
+    )));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0., -100.5, -1.),
+        100.,
+        material_center,
+    )));
 
     // Camera
     let camera = Camera::new(aspect_ratio);

@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::ops;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Color(f64, f64, f64);
 
 impl Color {
@@ -42,6 +42,14 @@ impl ops::AddAssign<Color> for Color {
         self.0 += other.0;
         self.1 += other.1;
         self.2 += other.2;
+    }
+}
+
+impl ops::Mul<Color> for Color {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self {
+        Color::new(self.0 * rhs.0, self.1 * rhs.1, self.2 * rhs.2)
     }
 }
 

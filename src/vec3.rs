@@ -2,6 +2,8 @@ use std::ops;
 
 use rand::Rng;
 
+const TOL: f64 = 1e-8;
+
 #[derive(Clone, Debug)]
 pub struct Vec3(f64, f64, f64);
 pub type Point3 = Vec3;
@@ -33,6 +35,10 @@ impl Vec3 {
 
     pub fn unit_vector(&self) -> Vec3 {
         return self / self.length();
+    }
+
+    pub fn near_zero(&self) -> bool {
+        f64::abs(self.0) < TOL && f64::abs(self.1) < TOL && f64::abs(self.2) < TOL
     }
 }
 
@@ -160,6 +166,7 @@ pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.0 * v.0 + u.1 * v.1 + u.2 * v.2
 }
 
+#[allow(dead_code)]
 pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
     let mut in_unit_sphere = random_in_unit_sphere();
     if dot(&in_unit_sphere, &normal) <= 0. {
@@ -171,8 +178,8 @@ pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
     in_unit_sphere
 }
 
-/// For 'true' Lambertian diffuse scattering
 #[allow(dead_code)]
+/// For 'true' Lambertian diffuse scattering
 pub fn random_unit_vector() -> Vec3 {
     random_in_unit_sphere().unit_vector()
 }
@@ -298,7 +305,7 @@ mod test {
     #[test]
     fn test_vec3_random_unit_vector() {
         let v = random_unit_vector();
-        assert!(f64::abs(1.0 - v.length()) < 1e-9);
+        assert!(f64::abs(1.0 - v.length()) < TOL);
     }
 
     #[test]
