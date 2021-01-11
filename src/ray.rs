@@ -1,6 +1,6 @@
 use crate::color::Color;
 
-use crate::hittable::{HitRecord, Hittable};
+use crate::hittable::Hittable;
 
 use crate::vec3::{Point3, Vec3};
 
@@ -25,16 +25,18 @@ impl<'a> Ray<'a> {
             return Color::new(0., 0., 0.);
         }
 
-        let mut rec = HitRecord::new();
-        if world.hit(&self, 0.01, std::f64::INFINITY, &mut rec) {
-            match rec.material.scatter(&self, &rec) {
-                Some(scatter) => {
-                    return scatter.attenuation * scatter.ray.color(world, depth-1);
+        match world.hit(&self, 0.01, std::f64::INFINITY) {
+            Some(rec) => {
+                match rec.material.scatter(&self, &rec) {
+                    Some(scatter) => {
+                        return scatter.attenuation * scatter.ray.color(world, depth-1);
+                    }
+                    None => {
+                        return Color::new(0., 0., 0.);
+                    }
                 }
-                None => {
-                    return Color::new(0., 0., 0.);
-                }
-            }
+            },
+            None => (),
         }
 
         let unit_direction = self.direction.unit_vector();
@@ -53,6 +55,7 @@ impl PartialEq for Ray<'_> {
 mod test {
     use super::*;
     use std::rc::Rc;
+    use crate::hittable::HitRecord;
     use crate::material::Lambertian;
     use crate::sphere::Sphere;
 
@@ -103,18 +106,23 @@ mod test {
 
     #[test]
     fn test_ray_hit_sphere() {
+        let rec: Option<HitRecord>;
+
         let origin = Point3::new(0.0, 0.0, 0.0);
         let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
 
-        let mut rec = HitRecord::new();
         let t_min = 0.;
         let t_max = std::f64::INFINITY;
 
         let r = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
-        assert!(sphere.hit(&r, t_min, t_max, &mut rec));
+        rec = sphere.hit(&r, t_min, t_max);
+        let hit = rec.is_some();
+        assert!(hit);
 
         let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 1.0));
-        assert!(!sphere.hit(&r, t_min, t_max, &mut rec));
+        rec = sphere.hit(&r, t_min, t_max);
+        let miss = rec.is_none();
+        assert!(miss);
     }
 }

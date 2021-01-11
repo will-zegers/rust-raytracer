@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
-use crate::color::Color;
-use crate::material::{Lambertian, Material};
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::{Point3, Vec3};
@@ -16,26 +15,26 @@ pub struct HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
 impl HitRecord {
-    pub fn new() -> HitRecord {
-        HitRecord {
-            p: Point3::new(0., 0., 0.),
-            normal: Vec3::new(0., 0., 0.),
-            t: 0.,
-            material: Rc::new(Lambertian::new(Color::new(0., 0., 0.))),
-        }
-    }
+    // pub fn new(&ray: Ray, outward_normal: Vec3) -> HitRecord {
+    //     HitRecord {
+    //         p: Point3::new(0., 0., 0.),
+    //         normal: set_face_normal(&ray, outward_normal),
+    //         t: 0.,
+    //         material: Rc::new(Lambertian::new(Color::new(0., 0., 0.))),
+    //     }
+    // }
 
-    pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: Vec3) {
+    pub fn get_face_normal(ray: &Ray, outward_normal: Vec3) -> Vec3 {
         let front_face = vec3::dot(&ray.direction, &outward_normal) < 0.;
         if front_face {
-            self.normal = outward_normal;
-        } else {
-            self.normal = -outward_normal;
+            return outward_normal;
         }
+
+        -outward_normal
     }
 }
 
@@ -66,19 +65,21 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
-        let mut hit_anything = false;
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let mut closest_so_far = t_max;
-        let mut temp_rec = HitRecord::new();
+        let mut rec: Option<HitRecord> = None;
 
         for object in &self.objects {
-            if object.hit(ray, t_min, closest_so_far, &mut temp_rec) {
-                hit_anything = true;
-                *rec = temp_rec.clone();
-                closest_so_far = rec.t;
+            match object.hit(ray, t_min, closest_so_far) {
+                Some(temp_rec) => {
+                    closest_so_far = temp_rec.t;
+                    rec = Some(temp_rec);
+                },
+                None => (),
             }
         }
-        hit_anything
+
+        rec
     }
 }
 
@@ -88,39 +89,31 @@ mod test {
 
     use std::rc::Rc;
 
+    use crate::color::Color;
+    use crate::material::Lambertian;
     use crate::ray::Ray;
     use crate::sphere::Sphere;
     use crate::vec3::{Point3, Vec3};
 
     struct GenericHittable;
     impl Hittable for GenericHittable {
-        fn hit(&self, _ray: &Ray, _t_min: f64, _t_max: f64, _rec: &mut HitRecord) -> bool {
-            true
+        fn hit(&self, _ray: &Ray, _t_min: f64, _t_max: f64) -> Option<HitRecord> {
+            None
         }
     }
 
     #[test]
-    fn test_hitrecord_new() {
-        let rec = HitRecord::new();
-
-        assert_eq!(rec.p, Point3::new(0., 0., 0.));
-        assert_eq!(rec.normal, Vec3::new(0., 0., 0.));
-        assert_eq!(rec.t, 0.);
-    }
-
-    #[test]
     fn test_hitrecord_set_face_normal() {
-        let mut rec = HitRecord::new();
         let origin = Point3::new(0., 0., 0.);
         let ray = Ray::new(&origin, Vec3::new(0., 0., 0.5));
 
         let outward_normal_same = Vec3::new(0., 0., -0.5);
-        rec.set_face_normal(&ray, outward_normal_same.clone());
-        assert_eq!(rec.normal, outward_normal_same);
+        let normal = HitRecord::get_face_normal(&ray, outward_normal_same.clone());
+        assert_eq!(normal, outward_normal_same);
 
         let outward_normal_opposite = Vec3::new(0., 0., 0.5);
-        rec.set_face_normal(&ray, outward_normal_same.clone());
-        assert_eq!(-rec.normal, outward_normal_opposite);
+        let normal = HitRecord::get_face_normal(&ray, outward_normal_opposite.clone());
+        assert_eq!(-normal, outward_normal_opposite);
     }
 
     #[test]
@@ -155,23 +148,30 @@ mod test {
 
     #[test]
     fn test_hittablelist_hit() {
+        let mut rec: Option<HitRecord>;
+
         let origin = Point3::new(0.0, 0.0, 0.0);
         let mut world = HittableList::new();
-        let mut rec = HitRecord::new();
+        let t_min = 0.;
+        let t_max = std::f64::INFINITY;
+
 
         let r_hit = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
-        let miss = !world.hit(&r_hit, 0., std::f64::INFINITY, &mut rec);
+        rec = world.hit(&r_hit, t_min, t_max);
+        let miss = rec.is_none();
         assert!(miss);
 
         let material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material);
         world.add(Box::new(sphere));
 
-        let hit = world.hit(&r_hit, 0., std::f64::INFINITY, &mut rec);
+        rec = world.hit(&r_hit, t_min, t_max);
+        let hit = rec.is_some();
         assert!(hit);
 
         let r_miss = Ray::new(&origin, Vec3::new(1.0, 1.0, 0.0));
-        let miss = !world.hit(&r_miss, 0., std::f64::INFINITY, &mut rec);
+        rec = world.hit(&r_miss, t_min, t_max);
+        let miss = rec.is_none();
         assert!(miss);
     }
 }
