@@ -8,5 +8,5 @@ pub struct Scatter {
 }
 
 pub trait Material {
-    fn scatter(&self, ray_in: &Ray, rec: & HitRecord) -> Option<Scatter>;
+    fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<Scatter>;
 }

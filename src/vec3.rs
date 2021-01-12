@@ -220,7 +220,7 @@ pub fn random_in_unit_sphere() -> Vec3 {
 pub fn random_in_unit_disk() -> Vec3 {
     let mut rng = rand::thread_rng();
     loop {
-        let p = Vec3(rng.gen_range(-1.0 .. 1.0), rng.gen_range(-1.0 .. 1.0), 0.0);
+        let p = Vec3(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
         if p.length_squared() < 1. {
             return p;
         }
@@ -279,10 +279,10 @@ mod test {
         let v3 = Vec3(1.0, 2.0, 2.0);
         assert_ne!(v1, v3);
 
-        let v4 = Vec3(v1.0 - (TOL/2.), v1.1 + (TOL/2.), v1.2);
+        let v4 = Vec3(v1.0 - (TOL / 2.), v1.1 + (TOL / 2.), v1.2);
         assert_eq!(v1, v4);
 
-        let v5 = Vec3(v1.0 - 2.*TOL, v1.1 + 2.*TOL, v1.2);
+        let v5 = Vec3(v1.0 - 2. * TOL, v1.1 + 2. * TOL, v1.2);
         assert_ne!(v1, v5);
     }
 

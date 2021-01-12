@@ -39,8 +39,7 @@ impl Camera {
         let origin = o.lookfrom;
         let horizontal = s.focus_dist * viewport_width * &u;
         let vertical = s.focus_dist * viewport_height * &v;
-        let lower_left_corner =
-            &origin - &horizontal / 2. - &vertical / 2. - s.focus_dist * w;
+        let lower_left_corner = &origin - &horizontal / 2. - &vertical / 2. - s.focus_dist * w;
 
         let lens_radius = s.aperture / 2.0;
 
@@ -61,7 +60,9 @@ impl Camera {
 
         Ray::new(
             &self.origin + &offset,
-            &self.lower_left_corner + s * &self.horizontal + t * &self.vertical - &self.origin - &offset,
+            &self.lower_left_corner + s * &self.horizontal + t * &self.vertical
+                - &self.origin
+                - &offset,
         )
     }
 }
@@ -75,8 +76,8 @@ mod test {
     fn get_camera(aspect_ratio: f64) -> Camera {
         let orientation = CameraOrientation {
             lookfrom: Point3::new(0.0, 0.0, 0.0),
-            lookat:   Point3::new(0.0, 0.0, -1.0),
-            vup:      Vec3::new(0.0, 1.0, 0.0),
+            lookat: Point3::new(0.0, 0.0, -1.0),
+            vup: Vec3::new(0.0, 1.0, 0.0),
         };
         let settings = CameraSettings {
             vfov: 90.0,

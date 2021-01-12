@@ -21,7 +21,7 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(&self, ray_in: &Ray, rec: & HitRecord) -> Option<Scatter> {
+    fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<Scatter> {
         let refraction_ratio = if rec.front_face {
             1.0 / self.index_of_refraction
         } else {

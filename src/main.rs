@@ -17,6 +17,7 @@ mod hittable;
 use crate::hittable::HittableList;
 
 mod material;
+use crate::material::base::Material;
 use crate::material::dielectric::Dielectric;
 use crate::material::lambertian::Lambertian;
 use crate::material::metal::Metal;
@@ -31,7 +32,7 @@ use crate::vec3::{Point3, Vec3};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 3 {
+    if args.len() != 5 {
         print_usage(&args[0]);
         std::process::exit(1);
     }
@@ -47,36 +48,25 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let samples_per_pixel = 50;
-    let max_depth = 50;
+    let samples_per_pixel: i32 = args[3].parse().expect("invalid SAMPLES_PER_PIXEL param");
+    let max_depth = args[4].parse().expect("invalid MAX_RAYTRACE_DEPTH param");
 
     // Camera
     let orientation = CameraOrientation {
-        lookfrom: Point3::new(0.0, 0.0, 0.0),
-        lookat:   Point3::new(0.0, 0.0, -1.0),
-        vup:      Vec3::new(0.0, 1.0, 0.0),
+        lookfrom: Point3::new(13., 2., 3.),
+        lookat: Point3::new(0.0, 0.0, -1.0),
+        vup: Vec3::new(0.0, 1.0, 0.0),
     };
     let settings = CameraSettings {
-        vfov: 90.0,
+        vfov: 20.0,
         aspect_ratio: 16.0 / 9.0,
-        aperture: 0.0,
-        focus_dist: (&orientation.lookfrom - &orientation.lookat).length(),
+        aperture: 0.1,
+        focus_dist: 10.
     };
     let camera = Camera::new(settings, orientation);
 
     // World
-    let mut world = HittableList::new();
-
-    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
-    let material_left   = Rc::new(Dielectric::new(1.5));
-    let material_right  = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.0));
-
-    world.add(Box::new(Sphere::new(Point3::new( 0.0, -100.5, -1.0), 100.0, material_ground)));
-    world.add(Box::new(Sphere::new(Point3::new( 0.0,    0.0, -1.0),   0.5, material_center)));
-    world.add(Box::new(Sphere::new(Point3::new(-1.0,    0.0, -1.0),   0.5, material_left.clone())));
-    world.add(Box::new(Sphere::new(Point3::new(-1.0,    0.0, -1.0), -0.45, material_left.clone())));
-    world.add(Box::new(Sphere::new(Point3::new( 1.0,    0.0, -1.0),   0.5, material_right)));
+    let world = random_scene();
 
     // Render
     // write the PPM header to file
@@ -104,8 +94,8 @@ fn main() {
 }
 
 fn print_usage(name: &str) {
-    writeln!(std::io::stderr(), "Usage: {} FILE DIMENSIONS", name).unwrap();
-    writeln!(std::io::stderr(), "Example: {} ./image.ppm 256x256", name).unwrap();
+    writeln!(std::io::stderr(), "Usage: {} FILE DIMENSIONS SAMPLES_PER_PIXEL MAX_RAYTRACE_DEPTH", name).unwrap();
+    writeln!(std::io::stderr(), "Example: {} ./image.ppm 256x256 100 50", name).unwrap();
 }
 
 /// Parse the string `s` as a coordinate pair, like `"400x600"`.
@@ -123,6 +113,61 @@ fn parse_dimensions(s: &str) -> Option<(i32, i32)> {
             _ => None,
         },
     }
+}
+
+fn random_scene() -> HittableList {
+    let mut world = HittableList::new();
+
+    let ground_material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    world.add(Box::new(Sphere::new(
+        Point3::new(0., -1000., 0.),
+        1000.,
+        ground_material,
+    )));
+
+    let mut rng = rand::thread_rng();
+    let ref_point = Point3::new(4.0, 0.2, 0.);
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rng.gen::<f64>();
+            let center = Point3::new(
+                (a as f64) + 0.9 * rng.gen::<f64>(),
+                0.2,
+                (b as f64) + 0.9 * rng.gen::<f64>(),
+            );
+
+            if (&center - &ref_point).length() > 0.9 {
+                let sphere_material: Rc<dyn Material>;
+
+                if choose_mat < 0.8 {
+                    // diffuse
+                    let albedo = Color::random(0., 1.) * Color::random(0., 1.);
+                    sphere_material = Rc::new(Lambertian::new(albedo));
+                } else if choose_mat < 0.95 {
+                    // metal
+                    let albedo = Color::random(0.5, 1.0);
+                    let fuzz = rng.gen_range(0.0 .. 0.5);
+                    sphere_material = Rc::new(Metal::new(albedo, fuzz));
+                } else {
+                    // glass
+                    sphere_material = Rc::new(Dielectric::new(1.5));
+                }
+                world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+            }
+        }
+    }
+
+    let material1 = Rc::new(Dielectric::new(1.5));
+    world.add(Box::new(Sphere::new(Point3::new(0., 1., 0.), 1., material1)));
+
+    let material2 = Rc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    world.add(Box::new(Sphere::new(Point3::new(-4., 1., 0.), 1., material2)));
+
+    let material3 = Rc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    world.add(Box::new(Sphere::new(Point3::new(4., 1., 0.), 1., material3)));
+
+    world
 }
 
 #[cfg(test)]

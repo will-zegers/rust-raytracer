@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::ops;
 
+use rand::Rng;
+
 #[derive(Clone, Debug)]
 pub struct Color(f64, f64, f64);
 
@@ -20,6 +22,16 @@ impl Color {
 
     pub fn b(&self) -> f64 {
         self.2
+    }
+
+    /// Generate a random color
+    pub fn random(min: f64, max: f64) -> Color {
+        let mut rng = rand::thread_rng();
+        Color(
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+        )
     }
 }
 
@@ -91,7 +103,6 @@ pub fn write_color(
     Ok(())
 }
 
-#[allow(dead_code)]
 fn clamp(x: f64, min: f64, max: f64) -> f64 {
     if x < min {
         return min;
