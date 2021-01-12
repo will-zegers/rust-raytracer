@@ -111,7 +111,7 @@ mod test {
         let mut rec: HitRecord;
 
         let ray_origin = Vec3::new(0., 0., 0.);
-        let ray_opposite_direction = Ray::new(&ray_origin, Vec3::new(0.0, 0.0, -1.0));
+        let ray_opposite_direction = Ray::new(ray_origin.clone(), Vec3::new(0.0, 0.0, -1.0));
 
         let t = 0.5;
         let p = Vec3::new(0.0, 0.0, -0.5);
@@ -129,7 +129,7 @@ mod test {
         assert_eq!(&rec.p, &p);
         assert_eq!(rec.normal, normal);
 
-        let ray_same_direction = Ray::new(&ray_origin, Vec3::new(0.0, 0.0, 1.0));
+        let ray_same_direction = Ray::new(ray_origin.clone(), Vec3::new(0.0, 0.0, 1.0));
 
         rec = HitRecord::new(
             &ray_same_direction,
@@ -146,7 +146,7 @@ mod test {
     #[test]
     fn test_hitrecord_get_front_face() {
         let origin = Point3::new(0., 0., 0.);
-        let ray = Ray::new(&origin, Vec3::new(0., 0., 0.5));
+        let ray = Ray::new(origin, Vec3::new(0., 0., 0.5));
 
         let outward_normal_same = Vec3::new(0., 0., -0.5);
         let same_direction = HitRecord::get_front_face(&ray, &outward_normal_same);
@@ -196,7 +196,7 @@ mod test {
         let t_min = 0.;
         let t_max = std::f64::INFINITY;
 
-        let r_hit = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
+        let r_hit = Ray::new(origin.clone(), Vec3::new(0.0, 0.0, -1.0));
         rec = world.hit(&r_hit, t_min, t_max);
         let miss = rec.is_none();
         assert!(miss);
@@ -209,7 +209,7 @@ mod test {
         let hit = rec.is_some();
         assert!(hit);
 
-        let r_miss = Ray::new(&origin, Vec3::new(1.0, 1.0, 0.0));
+        let r_miss = Ray::new(origin.clone(), Vec3::new(1.0, 1.0, 0.0));
         rec = world.hit(&r_miss, t_min, t_max);
         let miss = rec.is_none();
         assert!(miss);

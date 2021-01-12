@@ -8,14 +8,14 @@ pub struct Lambertian {
     albedo: Color,
 }
 
-impl<'a> Lambertian {
+impl Lambertian {
     pub fn new(albedo: Color) -> Self {
         Self { albedo }
     }
 }
 
 impl Material for Lambertian {
-    fn scatter<'a>(&self, _ray_in: &Ray, rec: &'a HitRecord) -> Option<Scatter<'a>> {
+    fn scatter(&self, _ray_in: &Ray, rec: & HitRecord) -> Option<Scatter> {
         let mut scatter_direction = &rec.normal + vec3::random_unit_vector();
 
         // Catch degenerate scatter direction
@@ -24,7 +24,7 @@ impl Material for Lambertian {
         }
 
         Some(Scatter {
-            ray: Ray::new(&rec.p, scatter_direction),
+            ray: Ray::new(rec.p.clone(), scatter_direction),
             attenuation: self.albedo.clone(),
         })
     }

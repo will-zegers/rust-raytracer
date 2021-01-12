@@ -44,7 +44,7 @@ impl Vec3 {
 
 impl PartialEq for Vec3 {
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0 && self.1 == other.1 && self.2 == other.2
+        (self - other).near_zero()
     }
 }
 
@@ -112,6 +112,22 @@ impl ops::Mul<Vec3> for f64 {
     }
 }
 
+impl ops::Mul<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: f64) -> Vec3 {
+        rhs * &self
+    }
+}
+
+impl ops::Mul<f64> for &Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: f64) -> Vec3 {
+        rhs * self
+    }
+}
+
 // TODO: figure out if there's a way to unify multiple traits for ref and non-ref
 impl ops::Sub<&Vec3> for &Vec3 {
     type Output = Vec3;
@@ -166,6 +182,14 @@ pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.0 * v.0 + u.1 * v.1 + u.2 * v.2
 }
 
+pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
+    Vec3(
+        u.1 * v.2 - u.2 * v.1,
+        u.2 * v.0 - u.0 * v.2,
+        u.0 * v.1 - u.1 * v.0,
+    )
+}
+
 #[allow(dead_code)]
 pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
     let mut in_unit_sphere = random_in_unit_sphere();
@@ -190,6 +214,16 @@ pub fn random_in_unit_sphere() -> Vec3 {
             continue;
         }
         return v;
+    }
+}
+
+pub fn random_in_unit_disk() -> Vec3 {
+    let mut rng = rand::thread_rng();
+    loop {
+        let p = Vec3(rng.gen_range(-1.0 .. 1.0), rng.gen_range(-1.0 .. 1.0), 0.0);
+        if p.length_squared() < 1. {
+            return p;
+        }
     }
 }
 
@@ -244,6 +278,12 @@ mod test {
 
         let v3 = Vec3(1.0, 2.0, 2.0);
         assert_ne!(v1, v3);
+
+        let v4 = Vec3(v1.0 - (TOL/2.), v1.1 + (TOL/2.), v1.2);
+        assert_eq!(v1, v4);
+
+        let v5 = Vec3(v1.0 - 2.*TOL, v1.1 + 2.*TOL, v1.2);
+        assert_ne!(v1, v5);
     }
 
     #[test]

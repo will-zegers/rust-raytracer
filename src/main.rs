@@ -8,7 +8,7 @@ use std::str::FromStr;
 use rand::Rng;
 
 mod camera;
-use crate::camera::Camera;
+use crate::camera::{Camera, CameraOrientation, CameraSettings};
 
 mod color;
 use crate::color::Color;
@@ -27,7 +27,7 @@ mod sphere;
 use crate::sphere::Sphere;
 
 mod vec3;
-use crate::vec3::Point3;
+use crate::vec3::{Point3, Vec3};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -47,43 +47,36 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let aspect_ratio = image_width as f64 / image_height as f64;
-    let samples_per_pixel = 10;
-    let max_depth = 10;
+    let samples_per_pixel = 50;
+    let max_depth = 50;
 
     // Camera
-    let camera = Camera::new(aspect_ratio);
+    let orientation = CameraOrientation {
+        lookfrom: Point3::new(0.0, 0.0, 0.0),
+        lookat:   Point3::new(0.0, 0.0, -1.0),
+        vup:      Vec3::new(0.0, 1.0, 0.0),
+    };
+    let settings = CameraSettings {
+        vfov: 90.0,
+        aspect_ratio: 16.0 / 9.0,
+        aperture: 0.0,
+        focus_dist: (&orientation.lookfrom - &orientation.lookat).length(),
+    };
+    let camera = Camera::new(settings, orientation);
 
     // World
-    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    // let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    // let material_left   = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
-    let material_center = Rc::new(Dielectric::new(1.5));
-    let material_left = Rc::new(Dielectric::new(1.5));
-    let material_right = Rc::new(Metal::new(Color::new(0.6, 0.6, 0.2), 0.0));
-
-    // add some objects to our world for rays to intersect with.
     let mut world = HittableList::new();
-    world.add(Box::new(Sphere::new(
-        Point3::new(0., 0., -1.),
-        0.5,
-        material_center,
-    )));
-    world.add(Box::new(Sphere::new(
-        Point3::new(0., -100.5, -1.),
-        100.,
-        material_ground,
-    )));
-    world.add(Box::new(Sphere::new(
-        Point3::new(-1.0, 0., -1.),
-        0.5,
-        material_left,
-    )));
-    world.add(Box::new(Sphere::new(
-        Point3::new(1.0, 0., -1.),
-        0.5,
-        material_right,
-    )));
+
+    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
+    let material_left   = Rc::new(Dielectric::new(1.5));
+    let material_right  = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.0));
+
+    world.add(Box::new(Sphere::new(Point3::new( 0.0, -100.5, -1.0), 100.0, material_ground)));
+    world.add(Box::new(Sphere::new(Point3::new( 0.0,    0.0, -1.0),   0.5, material_center)));
+    world.add(Box::new(Sphere::new(Point3::new(-1.0,    0.0, -1.0),   0.5, material_left.clone())));
+    world.add(Box::new(Sphere::new(Point3::new(-1.0,    0.0, -1.0), -0.45, material_left.clone())));
+    world.add(Box::new(Sphere::new(Point3::new( 1.0,    0.0, -1.0),   0.5, material_right)));
 
     // Render
     // write the PPM header to file

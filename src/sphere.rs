@@ -24,7 +24,7 @@ impl Sphere {
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let origin_to_center = ray.origin - &self.center;
+        let origin_to_center = &ray.origin - &self.center;
         let a = ray.direction.length_squared();
         let half_b = vec3::dot(&origin_to_center, &ray.direction);
         let c = origin_to_center.length_squared() - self.radius * self.radius;
@@ -74,12 +74,12 @@ mod test {
         let t_min = 0.;
         let t_max = std::f64::INFINITY;
 
-        let r = Ray::new(&origin, Vec3::new(0.0, 0.0, -1.0));
+        let r = Ray::new(origin.clone(), Vec3::new(0.0, 0.0, -1.0));
         rec = sphere.hit(&r, t_min, t_max);
         let hit = rec.is_some();
         assert!(hit);
 
-        let r = Ray::new(&origin, Vec3::new(1.0, 1.0, 1.0));
+        let r = Ray::new(origin.clone(), Vec3::new(1.0, 1.0, 1.0));
         rec = sphere.hit(&r, t_min, t_max);
         let miss = rec.is_none();
         assert!(miss);
