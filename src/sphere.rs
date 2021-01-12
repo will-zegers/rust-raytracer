@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::hittable::{HitRecord, Hittable};
-use crate::material::Material;
+use crate::material::base::Material;
 use crate::ray::Ray;
 use crate::vec3;
 use crate::vec3::Point3;
@@ -45,19 +45,21 @@ impl Hittable for Sphere {
         }
 
         let outward_normal = (&ray.at(root) - &self.center) / self.radius;
-        Some(HitRecord {
-            t: root,
-            normal: HitRecord::get_face_normal(&ray, outward_normal),
-            p: ray.at(root),
-            material_rc: self.material_rc.clone(),
-        })
+        let rec = HitRecord::new(
+            &ray,
+            root,
+            ray.at(root),
+            outward_normal,
+            self.material_rc.clone(),
+        );
+        Some(rec)
     }
 }
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::color::Color;
-    use crate::material::Lambertian;
+    use crate::material::lambertian::Lambertian;
     use crate::ray::Ray;
     use crate::vec3::{Point3, Vec3};
 

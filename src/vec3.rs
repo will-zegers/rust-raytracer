@@ -171,10 +171,8 @@ pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
     let mut in_unit_sphere = random_in_unit_sphere();
     if dot(&in_unit_sphere, &normal) <= 0. {
         //In the same hemisphere as the normal
-        println!("In same: {:?}", in_unit_sphere);
         in_unit_sphere = -in_unit_sphere;
     }
-    println!("Not same: {:?}", in_unit_sphere);
     in_unit_sphere
 }
 

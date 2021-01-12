@@ -17,7 +17,9 @@ mod hittable;
 use crate::hittable::HittableList;
 
 mod material;
-use crate::material::{Lambertian, Metal};
+use crate::material::dielectric::Dielectric;
+use crate::material::lambertian::Lambertian;
+use crate::material::metal::Metal;
 
 mod ray;
 
@@ -54,9 +56,11 @@ fn main() {
 
     // World
     let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    let material_left   = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
-    let material_right  = Rc::new(Metal::new(Color::new(0.6, 0.6, 0.2), 0.0));
+    // let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    // let material_left   = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_center = Rc::new(Dielectric::new(1.5));
+    let material_left = Rc::new(Dielectric::new(1.5));
+    let material_right = Rc::new(Metal::new(Color::new(0.6, 0.6, 0.2), 0.0));
 
     // add some objects to our world for rays to intersect with.
     let mut world = HittableList::new();

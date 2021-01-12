@@ -53,7 +53,7 @@ impl PartialEq for Ray<'_> {
 mod test {
     use super::*;
     use crate::hittable::HitRecord;
-    use crate::material::Lambertian;
+    use crate::material::lambertian::Lambertian;
     use crate::sphere::Sphere;
     use std::rc::Rc;
 
