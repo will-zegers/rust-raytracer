@@ -1,9 +1,8 @@
 use std::rc::Rc;
 
-use crate::material::base::Material;
-use crate::ray::Ray;
-use crate::vec3;
-use crate::vec3::{Point3, Vec3};
+use super::{Point3, Ray, Vec3};
+
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -38,7 +37,7 @@ impl HitRecord {
     }
 
     fn get_front_face(ray: &Ray, outward_normal: &Vec3) -> bool {
-        vec3::dot(&ray.direction, &outward_normal) < 0.
+        Vec3::dot(&ray.direction, &outward_normal) < 0.
     }
 }
 
@@ -94,10 +93,8 @@ mod test {
     use std::rc::Rc;
 
     use crate::color::Color;
-    use crate::material::lambertian::Lambertian;
-    use crate::ray::Ray;
-    use crate::sphere::Sphere;
-    use crate::vec3::{Point3, Vec3};
+    use crate::geometry::{Point3, Ray, Sphere, Vec3};
+    use crate::material::types::Lambertian;
 
     struct GenericHittable;
     impl Hittable for GenericHittable {

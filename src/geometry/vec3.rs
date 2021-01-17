@@ -8,9 +8,23 @@ const TOL: f64 = 1e-8;
 pub struct Vec3(f64, f64, f64);
 pub type Point3 = Vec3;
 
+pub enum RandomVectorType {
+    InUnitDisk,
+    InUnitSphere,
+    Unit,
+}
+
 impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3(x, y, z)
+    }
+
+    pub fn random(vector_type: RandomVectorType) -> Vec3 {
+        match vector_type {
+            RandomVectorType::InUnitDisk => random_in_unit_disk(),
+            RandomVectorType::InUnitSphere => random_in_unit_sphere(),
+            RandomVectorType::Unit => random_unit_vector(),
+        }
     }
 
     pub fn x(&self) -> f64 {
@@ -39,6 +53,18 @@ impl Vec3 {
 
     pub fn near_zero(&self) -> bool {
         f64::abs(self.0) < TOL && f64::abs(self.1) < TOL && f64::abs(self.2) < TOL
+    }
+
+    pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
+        u.0 * v.0 + u.1 * v.1 + u.2 * v.2
+    }
+
+    pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
+        Vec3(
+            u.1 * v.2 - u.2 * v.1,
+            u.2 * v.0 - u.0 * v.2,
+            u.0 * v.1 - u.1 * v.0,
+        )
     }
 }
 
@@ -177,39 +203,14 @@ impl ops::Neg for Vec3 {
     }
 }
 
-/// Compute the dot product of two Vec3s
-pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
-    u.0 * v.0 + u.1 * v.1 + u.2 * v.2
-}
-
-pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
-    Vec3(
-        u.1 * v.2 - u.2 * v.1,
-        u.2 * v.0 - u.0 * v.2,
-        u.0 * v.1 - u.1 * v.0,
-    )
-}
-
-#[allow(dead_code)]
-pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
-    let mut in_unit_sphere = random_in_unit_sphere();
-    if dot(&in_unit_sphere, &normal) <= 0. {
-        //In the same hemisphere as the normal
-        in_unit_sphere = -in_unit_sphere;
-    }
-    in_unit_sphere
-}
-
-#[allow(dead_code)]
-/// For 'true' Lambertian diffuse scattering
-pub fn random_unit_vector() -> Vec3 {
-    random_in_unit_sphere().unit_vector()
-}
-
-/// Simplified diffuse scattering
-pub fn random_in_unit_sphere() -> Vec3 {
+fn random_in_unit_sphere() -> Vec3 {
+    let mut rng = rand::thread_rng();
     loop {
-        let v = random(-1., 1.);
+        let v = Vec3(
+            rng.gen_range(-1.0..1.0),
+            rng.gen_range(-1.0..1.0),
+            rng.gen_range(-1.0..1.0),
+        );
         if v.length_squared() >= 1. {
             continue;
         }
@@ -217,24 +218,18 @@ pub fn random_in_unit_sphere() -> Vec3 {
     }
 }
 
-pub fn random_in_unit_disk() -> Vec3 {
+fn random_in_unit_disk() -> Vec3 {
     let mut rng = rand::thread_rng();
     loop {
-        let p = Vec3(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
-        if p.length_squared() < 1. {
-            return p;
+        let v = Vec3(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
+        if v.length_squared() < 1. {
+            return v;
         }
     }
 }
 
-/// Generate a random 3-vector
-fn random(min: f64, max: f64) -> Vec3 {
-    let mut rng = rand::thread_rng();
-    Vec3(
-        rng.gen_range(min..max),
-        rng.gen_range(min..max),
-        rng.gen_range(min..max),
-    )
+fn random_unit_vector() -> Vec3 {
+    random_in_unit_sphere().unit_vector()
 }
 
 #[cfg(test)]
@@ -320,36 +315,13 @@ mod test {
         let v1 = Vec3::new(1.0, 2.0, 3.0);
         let v2 = Vec3::new(3.0, 4.0, 12.0);
 
-        let res = dot(&v1, &v2);
+        let res = Vec3::dot(&v1, &v2);
         assert_eq!(res, 47.0);
-    }
-
-    #[test]
-    fn test_vec3_random() {
-        let min = -1.;
-        let max = 1.;
-
-        let v1 = random(min, max);
-        let v2 = random(min, max);
-        assert_ne!(v1, v2);
     }
 
     #[test]
     fn test_vec3_random_in_unit_sphere() {
         let v = random_in_unit_sphere();
         assert!(v.length_squared() < 1.)
-    }
-
-    #[test]
-    fn test_vec3_random_unit_vector() {
-        let v = random_unit_vector();
-        assert!(f64::abs(1.0 - v.length()) < TOL);
-    }
-
-    #[test]
-    fn test_vec3_random_in_hemisphere() {
-        let normal = Vec3(0., 0., -1.);
-        let in_unit_sphere = random_in_hemisphere(&normal);
-        assert!(dot(&in_unit_sphere, &normal) > 0.)
     }
 }

@@ -1,18 +1,16 @@
 use crate::color::Color;
 
-use crate::hittable::Hittable;
+use super::{Hittable, Point3, Vec3};
 
-use crate::vec3::{Point3, Vec3};
-
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Ray {
     pub origin: Point3,
     pub direction: Vec3,
 }
 
 impl Ray {
-    pub fn new(origin: Point3, direction: Vec3) -> Ray {
-        Ray { origin, direction }
+    pub fn new(origin: Point3, direction: Vec3) -> Self {
+        Self { origin, direction }
     }
 
     pub fn at(&self, t: f64) -> Point3 {
@@ -43,18 +41,12 @@ impl Ray {
     }
 }
 
-impl PartialEq for Ray {
-    fn eq(&self, other: &Self) -> bool {
-        self.origin == other.origin && self.direction == other.direction
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::hittable::HitRecord;
-    use crate::material::lambertian::Lambertian;
-    use crate::sphere::Sphere;
+    use crate::geometry::HitRecord;
+    use crate::geometry::Sphere;
+    use crate::material::types::Lambertian;
     use std::rc::Rc;
 
     #[test]

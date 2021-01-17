@@ -1,10 +1,7 @@
 use std::rc::Rc;
 
-use crate::hittable::{HitRecord, Hittable};
-use crate::material::base::Material;
-use crate::ray::Ray;
-use crate::vec3;
-use crate::vec3::Point3;
+use crate::geometry::{HitRecord, Hittable, Point3, Ray, Vec3};
+use crate::material::Material;
 
 pub struct Sphere {
     center: Point3,
@@ -13,8 +10,8 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64, material_rc: Rc<dyn Material>) -> Sphere {
-        Sphere {
+    pub fn new(center: Point3, radius: f64, material_rc: Rc<dyn Material>) -> Self {
+        Self {
             center,
             radius,
             material_rc,
@@ -26,7 +23,7 @@ impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let origin_to_center = &ray.origin - &self.center;
         let a = ray.direction.length_squared();
-        let half_b = vec3::dot(&origin_to_center, &ray.direction);
+        let half_b = Vec3::dot(&origin_to_center, &ray.direction);
         let c = origin_to_center.length_squared() - self.radius * self.radius;
 
         let discriminant = half_b * half_b - a * c;
@@ -55,13 +52,13 @@ impl Hittable for Sphere {
         Some(rec)
     }
 }
+
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::color::Color;
-    use crate::material::lambertian::Lambertian;
-    use crate::ray::Ray;
-    use crate::vec3::{Point3, Vec3};
+    use crate::geometry::{Point3, Ray, Vec3};
+    use crate::material::types::Lambertian;
 
     #[test]
     fn test_sphere_hit() {

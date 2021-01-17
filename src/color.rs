@@ -4,12 +4,12 @@ use std::ops;
 
 use rand::Rng;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Color(f64, f64, f64);
 
 impl Color {
-    pub fn new(r: f64, g: f64, b: f64) -> Color {
-        Color(r, g, b)
+    pub fn new(r: f64, g: f64, b: f64) -> Self {
+        Self(r, g, b)
     }
 
     pub fn r(&self) -> f64 {
@@ -25,9 +25,9 @@ impl Color {
     }
 
     /// Generate a random color
-    pub fn random(min: f64, max: f64) -> Color {
+    pub fn random(min: f64, max: f64) -> Self {
         let mut rng = rand::thread_rng();
-        Color(
+        Self(
             rng.gen_range(min..max),
             rng.gen_range(min..max),
             rng.gen_range(min..max),
@@ -35,22 +35,16 @@ impl Color {
     }
 }
 
-impl PartialEq for Color {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0 && self.1 == other.1 && self.2 == other.2
-    }
-}
-
 impl ops::Add<Color> for Color {
-    type Output = Color;
+    type Output = Self;
 
-    fn add(self, rhs: Color) -> Color {
-        Color(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
+    fn add(self, rhs: Self) -> Self {
+        Self(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
     }
 }
 
 impl ops::AddAssign<Color> for Color {
-    fn add_assign(&mut self, other: Color) {
+    fn add_assign(&mut self, other: Self) {
         self.0 += other.0;
         self.1 += other.1;
         self.2 += other.2;
@@ -66,9 +60,9 @@ impl ops::Mul<Color> for Color {
 }
 
 impl ops::Mul<f64> for Color {
-    type Output = Color;
+    type Output = Self;
 
-    fn mul(self, t: f64) -> Color {
+    fn mul(self, t: f64) -> Self {
         Color::new(t * self.r(), t * self.g(), t * self.b())
     }
 }

@@ -1,20 +1,17 @@
-#[allow(unused_imports)]
 use rand::Rng;
 
 use crate::color::Color;
-use crate::hittable::HitRecord;
+use crate::geometry::{HitRecord, Ray, Vec3};
 use crate::material;
-use crate::material::base::{Material, Scatter};
-use crate::ray::Ray;
-use crate::vec3;
+use crate::material::{Material, Scatter};
 
 pub struct Dielectric {
     index_of_refraction: f64,
 }
 
 impl Dielectric {
-    pub fn new(index_of_refraction: f64) -> Dielectric {
-        Dielectric {
+    pub fn new(index_of_refraction: f64) -> Self {
+        Self {
             index_of_refraction,
         }
     }
@@ -29,7 +26,7 @@ impl Material for Dielectric {
         };
 
         let unit_direction = ray_in.direction.unit_vector();
-        let cos_theta = f64::min(vec3::dot(&-&unit_direction, &rec.normal), 1.0);
+        let cos_theta = f64::min(Vec3::dot(&-&unit_direction, &rec.normal), 1.0);
         let sin_theta = f64::sqrt(1.0 - cos_theta * cos_theta);
 
         let cannot_refract = refraction_ratio * sin_theta > 1.0;

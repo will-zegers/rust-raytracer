@@ -1,9 +1,7 @@
 use crate::color::Color;
-use crate::hittable::HitRecord;
+use crate::geometry::{HitRecord, RandomVectorType, Ray, Vec3};
 use crate::material;
-use crate::material::base::{Material, Scatter};
-use crate::ray::Ray;
-use crate::vec3;
+use crate::material::{Material, Scatter};
 
 pub struct Metal {
     albedo: Color,
@@ -22,9 +20,9 @@ impl Material for Metal {
         let reflected = material::reflect(&ray_in.direction.unit_vector(), &rec.normal);
         let scattered = Ray::new(
             rec.p.clone(),
-            reflected + self.fuzz * vec3::random_in_unit_sphere(),
+            reflected + self.fuzz * Vec3::random(RandomVectorType::InUnitSphere),
         );
-        if vec3::dot(&scattered.direction, &rec.normal) <= 0. {
+        if Vec3::dot(&scattered.direction, &rec.normal) <= 0. {
             return None;
         }
         Some(Scatter {

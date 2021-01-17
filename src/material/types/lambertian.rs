@@ -1,8 +1,6 @@
 use crate::color::Color;
-use crate::hittable::HitRecord;
-use crate::material::base::{Material, Scatter};
-use crate::ray::Ray;
-use crate::vec3;
+use crate::geometry::{HitRecord, RandomVectorType, Ray, Vec3};
+use crate::material::{Material, Scatter};
 
 pub struct Lambertian {
     albedo: Color,
@@ -16,7 +14,7 @@ impl Lambertian {
 
 impl Material for Lambertian {
     fn scatter(&self, _ray_in: &Ray, rec: &HitRecord) -> Option<Scatter> {
-        let mut scatter_direction = &rec.normal + vec3::random_unit_vector();
+        let mut scatter_direction = &rec.normal + Vec3::random(RandomVectorType::Unit);
 
         // Catch degenerate scatter direction
         if scatter_direction.near_zero() {
