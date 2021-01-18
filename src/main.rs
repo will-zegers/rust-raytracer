@@ -77,8 +77,9 @@ fn main() {
                 pixel_color += r.color(&world, max_depth);
             }
 
-            color::write_color(&mut file, pixel_color, samples_per_pixel)
-                .expect("could not write to ppm file");
+            let pixel = color::get_pixel(pixel_color, samples_per_pixel);
+            file.write_all(pixel.as_bytes())
+                .expect("could not write to .ppm file");
         }
     }
 }

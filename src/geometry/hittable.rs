@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use super::{Point3, Ray, Vec3};
+use super::{Point3, Ray, Vec3, AABB};
 
 use crate::material::Material;
 
@@ -15,6 +15,7 @@ pub struct HitRecord {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+    fn bounding_box(&self) -> Option<&AABB>;
 }
 
 impl HitRecord {
@@ -42,28 +43,31 @@ impl HitRecord {
 }
 
 pub struct HittableList {
+    bbox: AABB,
     objects: Vec<Box<dyn Hittable>>,
 }
 
 impl HittableList {
     pub fn new() -> HittableList {
         HittableList {
+            bbox: AABB {
+                minimum: Point3::new(0., 0., 0.),
+                maximum: Point3::new(0., 0., 0.),
+            },
             objects: Vec::new(),
         }
     }
 
-    #[allow(dead_code)]
-    pub fn clear(&mut self) {
-        self.objects.clear();
-    }
-
     pub fn add(&mut self, object: Box<dyn Hittable>) {
+        if object.bounding_box().is_some() {
+            let obj_bbox = object.bounding_box().unwrap();
+            if self.objects.len() == 0 {
+                self.bbox = obj_bbox.clone();
+            } else {
+                self.bbox = AABB::surrounding_box(&self.bbox, obj_bbox)
+            }
+        }
         self.objects.push(object);
-    }
-
-    #[allow(dead_code)]
-    fn len(&self) -> usize {
-        self.objects.len()
     }
 }
 
@@ -84,6 +88,14 @@ impl Hittable for HittableList {
 
         rec
     }
+
+    fn bounding_box(&self) -> Option<&AABB> {
+        if self.objects.len() == 0 {
+            return None;
+        }
+
+        Some(&self.bbox)
+    }
 }
 
 #[cfg(test)]
@@ -99,6 +111,9 @@ mod test {
     struct GenericHittable;
     impl Hittable for GenericHittable {
         fn hit(&self, _ray: &Ray, _t_min: f64, _t_max: f64) -> Option<HitRecord> {
+            None
+        }
+        fn bounding_box(&self) -> Option<&AABB> {
             None
         }
     }
@@ -157,7 +172,7 @@ mod test {
     #[test]
     fn test_hittablelist_new() {
         let world = HittableList::new();
-        assert_eq!(world.len(), 0);
+        assert_eq!(world.objects.len(), 0);
     }
 
     #[test]
@@ -165,23 +180,11 @@ mod test {
         let mut world = HittableList::new();
 
         world.add(Box::new(GenericHittable {}));
-        assert_eq!(world.len(), 1);
+        assert_eq!(world.objects.len(), 1);
 
         world.add(Box::new(GenericHittable {}));
         world.add(Box::new(GenericHittable {}));
-        assert_eq!(world.len(), 3);
-    }
-
-    #[test]
-    fn test_hittablelist_clear() {
-        let mut world = HittableList::new();
-
-        world.add(Box::new(GenericHittable {}));
-        world.add(Box::new(GenericHittable {}));
-        world.add(Box::new(GenericHittable {}));
-
-        world.clear();
-        assert_eq!(world.len(), 0);
+        assert_eq!(world.objects.len(), 3);
     }
 
     #[test]

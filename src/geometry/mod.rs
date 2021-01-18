@@ -1,3 +1,9 @@
+mod aabb;
+pub use aabb::AABB;
+
+mod bvh;
+pub use bvh::BVHNode;
+
 mod sphere;
 pub use sphere::Sphere;
 

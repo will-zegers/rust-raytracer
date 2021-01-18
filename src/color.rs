@@ -1,5 +1,5 @@
-use std::fs::File;
-use std::io::prelude::*;
+//TODO: add unit tests for Color::{AddAssign, Mul} and get_pixel
+
 use std::ops;
 
 use rand::Rng;
@@ -75,11 +75,7 @@ impl ops::Mul<Color> for f64 {
     }
 }
 
-pub fn write_color(
-    file: &mut File,
-    pixel_color: Color,
-    samples_per_pixel: i32,
-) -> std::io::Result<()> {
+pub fn get_pixel(pixel_color: Color, samples_per_pixel: i32) -> String {
     let scale = 1.0 / (samples_per_pixel as f64);
 
     // sqrt for gamma 2 correction
@@ -91,10 +87,7 @@ pub fn write_color(
     let ig = (256. * clamp(g, 0., 0.999)) as i32;
     let ib = (256. * clamp(b, 0., 0.999)) as i32;
 
-    let pixel = format!("{} {} {}\n", ir, ig, ib);
-    file.write_all(pixel.as_bytes())?;
-
-    Ok(())
+    format!("{} {} {}\n", ir, ig, ib)
 }
 
 fn clamp(x: f64, min: f64, max: f64) -> f64 {

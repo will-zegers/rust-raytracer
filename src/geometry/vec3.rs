@@ -1,4 +1,4 @@
-use std::ops;
+use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use rand::Rng;
 
@@ -74,7 +74,7 @@ impl PartialEq for Vec3 {
     }
 }
 
-impl ops::Add<&Vec3> for &Vec3 {
+impl Add<&Vec3> for &Vec3 {
     type Output = Vec3;
 
     fn add(self, rhs: &Vec3) -> Vec3 {
@@ -82,7 +82,7 @@ impl ops::Add<&Vec3> for &Vec3 {
     }
 }
 
-impl ops::Add<Vec3> for Vec3 {
+impl Add<Vec3> for Vec3 {
     type Output = Vec3;
 
     fn add(self, rhs: Vec3) -> Vec3 {
@@ -90,7 +90,7 @@ impl ops::Add<Vec3> for Vec3 {
     }
 }
 
-impl ops::Add<Vec3> for &Vec3 {
+impl Add<Vec3> for &Vec3 {
     type Output = Vec3;
 
     fn add(self, rhs: Vec3) -> Vec3 {
@@ -98,7 +98,7 @@ impl ops::Add<Vec3> for &Vec3 {
     }
 }
 
-impl ops::Add<&Vec3> for Vec3 {
+impl Add<&Vec3> for Vec3 {
     type Output = Vec3;
 
     fn add(self, rhs: &Vec3) -> Vec3 {
@@ -106,7 +106,7 @@ impl ops::Add<&Vec3> for Vec3 {
     }
 }
 
-impl ops::Div<f64> for &Vec3 {
+impl Div<f64> for &Vec3 {
     type Output = Vec3;
 
     fn div(self, rhs: f64) -> Vec3 {
@@ -114,7 +114,7 @@ impl ops::Div<f64> for &Vec3 {
     }
 }
 
-impl ops::Div<f64> for Vec3 {
+impl Div<f64> for Vec3 {
     type Output = Vec3;
 
     fn div(self, rhs: f64) -> Vec3 {
@@ -122,7 +122,20 @@ impl ops::Div<f64> for Vec3 {
     }
 }
 
-impl ops::Mul<&Vec3> for f64 {
+impl Index<usize> for Vec3 {
+    type Output = f64;
+
+    fn index(&self, i: usize) -> &f64 {
+        match i {
+            0 => &self.0,
+            1 => &self.1,
+            2 => &self.2,
+            _ => panic!("invalid vector index: {:?}", i),
+        }
+    }
+}
+
+impl Mul<&Vec3> for f64 {
     type Output = Vec3;
 
     fn mul(self, rhs: &Vec3) -> Vec3 {
@@ -130,7 +143,7 @@ impl ops::Mul<&Vec3> for f64 {
     }
 }
 
-impl ops::Mul<Vec3> for f64 {
+impl Mul<Vec3> for f64 {
     type Output = Vec3;
 
     fn mul(self, rhs: Vec3) -> Vec3 {
@@ -138,7 +151,7 @@ impl ops::Mul<Vec3> for f64 {
     }
 }
 
-impl ops::Mul<f64> for Vec3 {
+impl Mul<f64> for Vec3 {
     type Output = Vec3;
 
     fn mul(self, rhs: f64) -> Vec3 {
@@ -146,7 +159,7 @@ impl ops::Mul<f64> for Vec3 {
     }
 }
 
-impl ops::Mul<f64> for &Vec3 {
+impl Mul<f64> for &Vec3 {
     type Output = Vec3;
 
     fn mul(self, rhs: f64) -> Vec3 {
@@ -155,7 +168,7 @@ impl ops::Mul<f64> for &Vec3 {
 }
 
 // TODO: figure out if there's a way to unify multiple traits for ref and non-ref
-impl ops::Sub<&Vec3> for &Vec3 {
+impl Sub<&Vec3> for &Vec3 {
     type Output = Vec3;
 
     fn sub(self, rhs: &Vec3) -> Vec3 {
@@ -163,7 +176,7 @@ impl ops::Sub<&Vec3> for &Vec3 {
     }
 }
 
-impl ops::Sub<Vec3> for &Vec3 {
+impl Sub<Vec3> for &Vec3 {
     type Output = Vec3;
 
     fn sub(self, rhs: Vec3) -> Vec3 {
@@ -171,7 +184,7 @@ impl ops::Sub<Vec3> for &Vec3 {
     }
 }
 
-impl ops::Sub<&Vec3> for Vec3 {
+impl Sub<&Vec3> for Vec3 {
     type Output = Vec3;
 
     fn sub(self, rhs: &Vec3) -> Vec3 {
@@ -179,7 +192,7 @@ impl ops::Sub<&Vec3> for Vec3 {
     }
 }
 
-impl ops::Sub<Vec3> for Vec3 {
+impl Sub<Vec3> for Vec3 {
     type Output = Vec3;
 
     fn sub(self, rhs: Vec3) -> Vec3 {
@@ -187,7 +200,7 @@ impl ops::Sub<Vec3> for Vec3 {
     }
 }
 
-impl ops::Neg for &Vec3 {
+impl Neg for &Vec3 {
     type Output = Vec3;
 
     fn neg(self) -> Vec3 {
@@ -195,7 +208,7 @@ impl ops::Neg for &Vec3 {
     }
 }
 
-impl ops::Neg for Vec3 {
+impl Neg for Vec3 {
     type Output = Vec3;
 
     fn neg(self) -> Vec3 {

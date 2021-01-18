@@ -1,20 +1,26 @@
 use std::rc::Rc;
 
-use crate::geometry::{HitRecord, Hittable, Point3, Ray, Vec3};
+use super::{HitRecord, Hittable, Point3, Ray, Vec3, AABB};
 use crate::material::Material;
 
 pub struct Sphere {
     center: Point3,
     radius: f64,
     material_rc: Rc<dyn Material>,
+    bbox: AABB,
 }
 
 impl Sphere {
     pub fn new(center: Point3, radius: f64, material_rc: Rc<dyn Material>) -> Self {
+        let bbox = AABB {
+            minimum: &center - Vec3::new(radius, radius, radius),
+            maximum: &center + Vec3::new(radius, radius, radius),
+        };
         Self {
             center,
             radius,
             material_rc,
+            bbox,
         }
     }
 }
@@ -50,6 +56,10 @@ impl Hittable for Sphere {
             self.material_rc.clone(),
         );
         Some(rec)
+    }
+
+    fn bounding_box(&self) -> Option<&AABB> {
+        Some(&self.bbox)
     }
 }
 
