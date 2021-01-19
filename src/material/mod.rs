@@ -1,8 +1,11 @@
+// TODO: add unit tests for refract, reflect, and refectance
+
 pub mod types;
 
 use crate::color::Color;
 use crate::geometry::{HitRecord, Ray, Vec3};
 
+#[derive(Debug, PartialEq)]
 pub struct Scatter {
     pub ray: Ray,
     pub attenuation: Color,

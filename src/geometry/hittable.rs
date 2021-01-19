@@ -214,4 +214,47 @@ mod test {
         let miss = rec.is_none();
         assert!(miss);
     }
+
+    #[test]
+    fn test_hittablelist_bounding_box() {
+        let mut world = HittableList::new();
+        assert!(world.bounding_box().is_none());
+
+        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere1 = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc.clone());
+        world.add(Box::new(sphere1.clone()));
+
+        assert!(world.bounding_box().is_some());
+        assert!(world.bounding_box() == sphere1.bounding_box());
+
+        let sphere2 = Sphere::new(Point3::new(1., 0., -1.), 0.5, material_rc.clone());
+        world.add(Box::new(sphere2.clone()));
+        assert_eq!(
+            *world.bounding_box().unwrap(),
+            AABB {
+                minimum: Vec3::new(-0.5, -0.5, -1.5),
+                maximum: Vec3::new(1.5, 0.5, -0.5)
+            }
+        );
+
+        let sphere3 = Sphere::new(Point3::new(0., 1., 0.), 0.5, material_rc.clone());
+        world.add(Box::new(sphere3.clone()));
+        assert_eq!(
+            *world.bounding_box().unwrap(),
+            AABB {
+                minimum: Vec3::new(-0.5, -0.5, -1.5),
+                maximum: Vec3::new(1.5, 1.5, 0.5)
+            }
+        );
+
+        let sphere4 = Sphere::new(Point3::new(-1., -1., 0.), 0.5, material_rc.clone());
+        world.add(Box::new(sphere4.clone()));
+        assert_eq!(
+            *world.bounding_box().unwrap(),
+            AABB {
+                minimum: Vec3::new(-1.5, -1.5, -1.5),
+                maximum: Vec3::new(1.5, 1.5, 0.5)
+            }
+        );
+    }
 }

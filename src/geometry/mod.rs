@@ -11,8 +11,7 @@ mod ray;
 pub use ray::Ray;
 
 mod hittable;
-use hittable::Hittable;
-pub use hittable::{HitRecord, HittableList};
+pub use hittable::{HitRecord, Hittable, HittableList};
 
 mod vec3;
 pub use vec3::{Point3, RandomVectorType, Vec3};

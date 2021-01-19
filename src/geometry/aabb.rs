@@ -1,6 +1,8 @@
+// TODO: add unit tests
+
 use super::{Point3, Ray};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AABB {
     pub minimum: Point3,
     pub maximum: Point3,

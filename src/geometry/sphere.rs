@@ -3,6 +3,7 @@ use std::rc::Rc;
 use super::{HitRecord, Hittable, Point3, Ray, Vec3, AABB};
 use crate::material::Material;
 
+#[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
@@ -90,5 +91,19 @@ mod test {
         rec = sphere.hit(&r, t_min, t_max);
         let miss = rec.is_none();
         assert!(miss);
+    }
+
+    #[test]
+    fn test_sphere_bounding_box() {
+        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
+
+        assert_eq!(
+            *sphere.bounding_box().unwrap(),
+            AABB {
+                minimum: Vec3::new(-0.5, -0.5, -1.5),
+                maximum: Vec3::new(0.5, 0.5, -0.5)
+            }
+        )
     }
 }

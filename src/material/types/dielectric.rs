@@ -47,3 +47,33 @@ impl Material for Dielectric {
         })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use std::rc::Rc;
+
+    use crate::geometry::{Hittable, Point3, Ray, Sphere, Vec3};
+
+    #[test]
+    fn test_dielectric_scatter() {
+        let origin = Point3::new(0.0, 0.0, 0.0);
+        let material_rc = Rc::new(Dielectric::new(1.5));
+        let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
+
+        let t_min = 0.;
+        let t_max = std::f64::INFINITY;
+
+        let r = Ray::new(origin.clone(), Vec3::new(0.0, 0.0, -1.0));
+        let rec = sphere.hit(&r, t_min, t_max).unwrap();
+
+        let scatter = rec.material_rc.scatter(&r, &rec).unwrap();
+        assert_eq!(scatter.ray.origin, Vec3::new(0., 0., -0.5));
+        assert_eq!(scatter.attenuation, Color::new(1., 1., 1.));
+
+        // the material could either reflect or refract, so accept either for testing
+        let direction = Vec3::new(0., 0., -1.);
+        assert!(scatter.ray.direction == direction || scatter.ray.direction == -direction);
+    }
+}

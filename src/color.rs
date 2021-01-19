@@ -1,5 +1,3 @@
-//TODO: add unit tests for Color::{AddAssign, Mul} and get_pixel
-
 use std::ops;
 
 use rand::Rng;
@@ -128,12 +126,24 @@ mod test {
 
     #[test]
     fn test_color_ops() {
+        // addition
         let c1 = Color::new(1.0, 2.0, 3.0);
         let c2 = Color::new(3.0, 4.0, 12.0);
         let c_add = c1 + c2;
+        assert_eq!(c_add, Color(4., 6., 15.));
 
-        assert_eq!(c_add.0, 4.0);
-        assert_eq!(c_add.1, 6.0);
-        assert_eq!(c_add.2, 15.0);
+        // in-place addition
+        let mut c3 = Color::new(1.0, 2.0, 3.0);
+        c3 += Color::new(3.0, 4.0, 12.0);
+        assert_eq!(c3, Color(4., 6., 15.));
+
+        // scalar multiplication
+        let c4 = Color::new(1.0, 2.0, 3.0);
+        assert_eq!(2. * c4.clone(), Color(2., 4., 6.));
+        assert_eq!(2. * c4.clone(), c4.clone() * 2.);
+
+        // color-color multiplication
+        let c5 = Color::new(3., 5., 8.);
+        assert_eq!(c4 * c5, Color::new(3., 10., 24.));
     }
 }

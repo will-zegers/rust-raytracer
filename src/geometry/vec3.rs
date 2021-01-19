@@ -2,7 +2,6 @@ use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use rand::Rng;
 
-const TOL: f64 = 1e-8;
 
 #[derive(Clone, Debug)]
 pub struct Vec3(f64, f64, f64);
@@ -15,6 +14,9 @@ pub enum RandomVectorType {
 }
 
 impl Vec3 {
+
+    pub const TOL: f64 = 1e-8;
+
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3(x, y, z)
     }
@@ -52,7 +54,7 @@ impl Vec3 {
     }
 
     pub fn near_zero(&self) -> bool {
-        f64::abs(self.0) < TOL && f64::abs(self.1) < TOL && f64::abs(self.2) < TOL
+        f64::abs(self.0) < Self::TOL && f64::abs(self.1) < Self::TOL && f64::abs(self.2) < Self::TOL
     }
 
     pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
@@ -287,24 +289,27 @@ mod test {
         let v3 = Vec3(1.0, 2.0, 2.0);
         assert_ne!(v1, v3);
 
-        let v4 = Vec3(v1.0 - (TOL / 2.), v1.1 + (TOL / 2.), v1.2);
+        let v4 = Vec3(v1.0 - (Vec3::TOL / 2.), v1.1 + (Vec3::TOL / 2.), v1.2);
         assert_eq!(v1, v4);
 
-        let v5 = Vec3(v1.0 - 2. * TOL, v1.1 + 2. * TOL, v1.2);
+        let v5 = Vec3(v1.0 - 2. * Vec3::TOL, v1.1 + 2. * Vec3::TOL, v1.2);
         assert_ne!(v1, v5);
     }
 
     #[test]
     fn test_vec3_ops() {
+        // addition
         let v1 = Vec3::new(1.0, 2.0, 3.0);
         let v2 = Vec3::new(3.0, 4.0, 12.0);
         let v_add = v1 + v2;
         assert_eq!(v_add, Vec3(4.0, 6.0, 15.0));
 
+        // division
         let v3 = Vec3::new(1.0, 2.0, 3.0);
         let v_div = &v3 / 2.0;
         assert_eq!(v_div, Vec3(0.5, 1.0, 1.5));
 
+        // multiplication
         let v4 = Vec3::new(0.125, 0.25, 0.5);
         let v_mul = 8.0 * &v4;
         assert_eq!(v_mul, Vec3(1.0, 2.0, 4.0));
@@ -313,14 +318,22 @@ mod test {
         let v_mul = 8.0 * v8;
         assert_eq!(v_mul, Vec3(1.0, 2.0, 4.0));
 
+        // subtraction
         let v5 = Vec3::new(9.0, 8.0, 7.0);
         let v6 = Vec3::new(3.0, 2.0, 1.0);
         let v_sub = v5 - v6;
         assert_eq!(v_sub, Vec3(6.0, 6.0, 6.0));
 
+        // negation
         let v7 = Vec3::new(1.0, 2.0, 3.0);
         let v_neg = -v7;
         assert_eq!(v_neg, Vec3(-1.0, -2.0, -3.0));
+
+        // indexing
+        let v8 = Vec3::new(1.0, 2.0, 3.0);
+        assert_eq!(v8[0], 1.0);
+        assert_eq!(v8[1], 2.0);
+        assert_eq!(v8[2], 3.0);
     }
 
     #[test]
