@@ -3,33 +3,25 @@ use std::ops;
 use rand::Rng;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Color(f64, f64, f64);
+pub struct Color {
+    r: f64,
+    g: f64,
+    b: f64,
+}
 
 impl Color {
     pub fn new(r: f64, g: f64, b: f64) -> Self {
-        Self(r, g, b)
-    }
-
-    pub fn r(&self) -> f64 {
-        self.0
-    }
-
-    pub fn g(&self) -> f64 {
-        self.1
-    }
-
-    pub fn b(&self) -> f64 {
-        self.2
+        Self { r, g, b }
     }
 
     /// Generate a random color
     pub fn random(min: f64, max: f64) -> Self {
         let mut rng = rand::thread_rng();
-        Self(
-            rng.gen_range(min..max),
-            rng.gen_range(min..max),
-            rng.gen_range(min..max),
-        )
+        Self {
+            r: rng.gen_range(min..max),
+            g: rng.gen_range(min..max),
+            b: rng.gen_range(min..max),
+        }
     }
 }
 
@@ -37,15 +29,19 @@ impl ops::Add<Color> for Color {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        Self(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
+        Self {
+            r: self.r + rhs.r,
+            g: self.g + rhs.g,
+            b: self.b + rhs.b,
+        }
     }
 }
 
 impl ops::AddAssign<Color> for Color {
     fn add_assign(&mut self, other: Self) {
-        self.0 += other.0;
-        self.1 += other.1;
-        self.2 += other.2;
+        self.r += other.r;
+        self.g += other.g;
+        self.b += other.b;
     }
 }
 
@@ -53,7 +49,7 @@ impl ops::Mul<Color> for Color {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
-        Color::new(self.0 * rhs.0, self.1 * rhs.1, self.2 * rhs.2)
+        Color::new(self.r * rhs.r, self.g * rhs.g, self.b * rhs.b)
     }
 }
 
@@ -61,7 +57,7 @@ impl ops::Mul<f64> for Color {
     type Output = Self;
 
     fn mul(self, t: f64) -> Self {
-        Color::new(t * self.r(), t * self.g(), t * self.b())
+        Color::new(t * self.r, t * self.g, t * self.b)
     }
 }
 
@@ -77,9 +73,9 @@ pub fn get_pixel(pixel_color: Color, samples_per_pixel: i32) -> String {
     let scale = 1.0 / (samples_per_pixel as f64);
 
     // sqrt for gamma 2 correction
-    let r = f64::sqrt(scale * pixel_color.r());
-    let g = f64::sqrt(scale * pixel_color.g());
-    let b = f64::sqrt(scale * pixel_color.b());
+    let r = f64::sqrt(scale * pixel_color.r);
+    let g = f64::sqrt(scale * pixel_color.g);
+    let b = f64::sqrt(scale * pixel_color.b);
 
     let ir = (256. * clamp(r, 0., 0.999)) as i32;
     let ig = (256. * clamp(g, 0., 0.999)) as i32;
@@ -105,22 +101,30 @@ mod test {
     fn test_color_new() {
         let c = Color::new(1.0, 2.0, 3.0);
 
-        assert_eq!(c.0, 1.0);
-        assert_eq!(c.1, 2.0);
-        assert_eq!(c.2, 3.0);
-
-        assert_eq!(c.r(), c.0);
-        assert_eq!(c.g(), c.1);
-        assert_eq!(c.b(), c.2);
+        assert_eq!(c.r, 1.0);
+        assert_eq!(c.g, 2.0);
+        assert_eq!(c.b, 3.0);
     }
 
     #[test]
     fn test_color_equality() {
-        let c1 = Color(1.0, 2.0, 3.0);
-        let c2 = Color(1.0, 2.0, 3.0);
+        let c1 = Color {
+            r: 1.0,
+            g: 2.0,
+            b: 3.0,
+        };
+        let c2 = Color {
+            r: 1.0,
+            g: 2.0,
+            b: 3.0,
+        };
         assert_eq!(c1, c2);
 
-        let c3 = Color(1.0, 2.0, 2.0);
+        let c3 = Color {
+            r: 1.0,
+            g: 2.0,
+            b: 2.0,
+        };
         assert_ne!(c1, c3);
     }
 
@@ -130,16 +134,37 @@ mod test {
         let c1 = Color::new(1.0, 2.0, 3.0);
         let c2 = Color::new(3.0, 4.0, 12.0);
         let c_add = c1 + c2;
-        assert_eq!(c_add, Color(4., 6., 15.));
+        assert_eq!(
+            c_add,
+            Color {
+                r: 4.,
+                g: 6.,
+                b: 15.
+            }
+        );
 
         // in-place addition
         let mut c3 = Color::new(1.0, 2.0, 3.0);
         c3 += Color::new(3.0, 4.0, 12.0);
-        assert_eq!(c3, Color(4., 6., 15.));
+        assert_eq!(
+            c3,
+            Color {
+                r: 4.,
+                g: 6.,
+                b: 15.
+            }
+        );
 
         // scalar multiplication
         let c4 = Color::new(1.0, 2.0, 3.0);
-        assert_eq!(2. * c4.clone(), Color(2., 4., 6.));
+        assert_eq!(
+            2. * c4.clone(),
+            Color {
+                r: 2.,
+                g: 4.,
+                b: 6.
+            }
+        );
         assert_eq!(2. * c4.clone(), c4.clone() * 2.);
 
         // color-color multiplication

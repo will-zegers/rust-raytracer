@@ -55,14 +55,8 @@ mod test {
         let v = Vec3::new(4.4, 5.5, 6.6);
         let r = Ray::new(p, v);
 
-        assert_eq!(
-            r.origin,
-            Vec3::new(1.1, 2.2, 3.3)
-        );
-        assert_eq!(
-            r.direction,
-            Vec3::new(4.4, 5.5, 6.6)
-        );
+        assert_eq!(r.origin, Vec3::new(1.1, 2.2, 3.3));
+        assert_eq!(r.direction, Vec3::new(4.4, 5.5, 6.6));
     }
 
     #[test]

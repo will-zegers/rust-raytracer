@@ -131,7 +131,6 @@ fn random_scene() -> HittableList {
 
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = rng.gen::<f64>();
             let center = Point3::new(
                 (a as f64) + 0.9 * rng.gen::<f64>(),
                 0.2,
@@ -141,11 +140,12 @@ fn random_scene() -> HittableList {
             if (&center - &ref_point).length() > 0.9 {
                 let sphere_material: Rc<dyn Material>;
 
-                if choose_mat < 0.65 {
+                let random_material = rng.gen::<f64>();
+                if random_material < 0.65 {
                     // diffuse
                     let albedo = Color::random(0., 1.) * Color::random(0., 1.);
                     sphere_material = Rc::new(Lambertian::new(albedo));
-                } else if choose_mat < 0.85 {
+                } else if random_material < 0.85 {
                     // metal
                     let albedo = Color::random(0., 1.);
                     let fuzz = rng.gen_range(0.0..0.25);
