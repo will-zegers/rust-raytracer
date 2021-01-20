@@ -36,7 +36,7 @@ impl Ray {
         }
 
         let unit_direction = self.direction.unit_vector();
-        let t = 0.5 * (unit_direction.y() + 1.0);
+        let t = 0.5 * (unit_direction.y + 1.0);
         (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
     }
 }
@@ -55,12 +55,14 @@ mod test {
         let v = Vec3::new(4.4, 5.5, 6.6);
         let r = Ray::new(p, v);
 
-        assert_eq!(r.origin.x(), 1.1);
-        assert_eq!(r.origin.y(), 2.2);
-        assert_eq!(r.origin.z(), 3.3);
-        assert_eq!(r.direction.x(), 4.4);
-        assert_eq!(r.direction.y(), 5.5);
-        assert_eq!(r.direction.z(), 6.6);
+        assert_eq!(
+            r.origin,
+            Vec3::new(1.1, 2.2, 3.3)
+        );
+        assert_eq!(
+            r.direction,
+            Vec3::new(4.4, 5.5, 6.6)
+        );
     }
 
     #[test]
