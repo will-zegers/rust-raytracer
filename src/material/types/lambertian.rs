@@ -1,14 +1,17 @@
 use crate::color::Color;
 use crate::geometry::{HitRecord, RandomVectorType, Ray, Vec3};
 use crate::material::{Material, Scatter};
+use crate::texture::{SolidColor, Texture};
 
 pub struct Lambertian {
-    albedo: Color,
+    albedo: Box<dyn Texture>,
 }
 
 impl Lambertian {
     pub fn new(albedo: Color) -> Self {
-        Self { albedo }
+        Self {
+            albedo: Box::new(SolidColor { color: albedo }),
+        }
     }
 }
 
@@ -23,7 +26,7 @@ impl Material for Lambertian {
 
         Some(Scatter {
             ray: Ray::new(rec.p.clone(), scatter_direction),
-            attenuation: self.albedo.clone(),
+            attenuation: &self.albedo,
         })
     }
 }

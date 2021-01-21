@@ -20,6 +20,8 @@ mod material;
 use material::types::{Dielectric, Lambertian, Metal};
 use material::Material;
 
+mod texture;
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 5 {

@@ -2,13 +2,12 @@
 
 pub mod types;
 
-use crate::color::Color;
 use crate::geometry::{HitRecord, Ray, Vec3};
+use crate::texture::Texture;
 
-#[derive(Debug, PartialEq)]
-pub struct Scatter {
+pub struct Scatter<'a> {
     pub ray: Ray,
-    pub attenuation: Color,
+    pub attenuation: &'a Box<dyn Texture>,
 }
 
 pub trait Material {

@@ -26,7 +26,8 @@ impl Ray {
         match world.hit(&self, 0.001, std::f64::INFINITY) {
             Some(rec) => match rec.material_rc.scatter(&self, &rec) {
                 Some(scatter) => {
-                    return scatter.attenuation * scatter.ray.color(world, depth - 1);
+                    return scatter.attenuation.value(rec.u, rec.v, &rec.p)
+                        * scatter.ray.color(world, depth - 1);
                 }
                 None => {
                     return Color::new(0., 0., 0.);

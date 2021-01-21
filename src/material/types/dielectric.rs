@@ -4,14 +4,19 @@ use crate::color::Color;
 use crate::geometry::{HitRecord, Ray, Vec3};
 use crate::material;
 use crate::material::{Material, Scatter};
+use crate::texture::{SolidColor, Texture};
 
 pub struct Dielectric {
+    albedo: Box<dyn Texture>,
     index_of_refraction: f64,
 }
 
 impl Dielectric {
     pub fn new(index_of_refraction: f64) -> Self {
         Self {
+            albedo: Box::new(SolidColor {
+                color: Color::new(1., 1., 1.),
+            }),
             index_of_refraction,
         }
     }
@@ -43,7 +48,7 @@ impl Material for Dielectric {
 
         Some(Scatter {
             ray: Ray::new(rec.p.clone(), direction),
-            attenuation: Color::new(1., 1., 1.),
+            attenuation: &self.albedo,
         })
     }
 }

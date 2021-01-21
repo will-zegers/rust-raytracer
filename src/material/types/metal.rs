@@ -2,16 +2,20 @@ use crate::color::Color;
 use crate::geometry::{HitRecord, RandomVectorType, Ray, Vec3};
 use crate::material;
 use crate::material::{Material, Scatter};
+use crate::texture::{SolidColor, Texture};
 
 pub struct Metal {
-    albedo: Color,
+    albedo: Box<dyn Texture>,
     fuzz: f64,
 }
 
 impl Metal {
     pub fn new(albedo: Color, fuzz: f64) -> Self {
         debug_assert!(0. <= fuzz && fuzz <= 1.);
-        Self { albedo, fuzz }
+        Self {
+            albedo: Box::new(SolidColor { color: albedo }),
+            fuzz,
+        }
     }
 }
 
@@ -27,7 +31,7 @@ impl Material for Metal {
         }
         Some(Scatter {
             ray: scattered,
-            attenuation: self.albedo.clone(),
+            attenuation: &self.albedo,
         })
     }
 }

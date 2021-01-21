@@ -45,11 +45,35 @@ impl ops::AddAssign<Color> for Color {
     }
 }
 
-impl ops::Mul<Color> for Color {
-    type Output = Self;
+impl ops::Mul<&Color> for &Color {
+    type Output = Color;
 
-    fn mul(self, rhs: Self) -> Self {
+    fn mul(self, rhs: &Color) -> Color {
         Color::new(self.r * rhs.r, self.g * rhs.g, self.b * rhs.b)
+    }
+}
+
+impl ops::Mul<Color> for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: Self) -> Color {
+        &self * &rhs
+    }
+}
+
+impl ops::Mul<&Color> for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: &Self) -> Color {
+        &self * rhs
+    }
+}
+
+impl ops::Mul<Color> for &Color {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Color {
+        self * &rhs
     }
 }
 

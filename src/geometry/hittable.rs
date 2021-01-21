@@ -11,6 +11,8 @@ pub struct HitRecord {
     pub front_face: bool,
     pub normal: Vec3,
     pub material_rc: Rc<dyn Material>,
+    pub u: f64,
+    pub v: f64,
 }
 
 pub trait Hittable {
@@ -25,6 +27,8 @@ impl HitRecord {
         p: Point3,
         normal: Vec3,
         material_rc: Rc<dyn Material>,
+        u: f64,
+        v: f64,
     ) -> HitRecord {
         let front_face = HitRecord::get_front_face(&ray, &normal);
         let normal = if front_face { normal } else { -normal };
@@ -34,6 +38,8 @@ impl HitRecord {
             front_face,
             normal,
             material_rc,
+            u,
+            v,
         }
     }
 

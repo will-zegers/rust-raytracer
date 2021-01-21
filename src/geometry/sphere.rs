@@ -1,3 +1,4 @@
+use std::f64::consts::PI;
 use std::rc::Rc;
 
 use super::{HitRecord, Hittable, Point3, Ray, Vec3, AABB};
@@ -24,6 +25,13 @@ impl Sphere {
             bbox,
         }
     }
+
+    fn get_sphere_uv(p: &Point3) -> (f64, f64) {
+        let theta = f64::acos(-p.y);
+        let phi = f64::atan2(-p.z, p.x) + PI;
+
+        (phi / 2. * PI, theta / PI)
+    }
 }
 
 impl Hittable for Sphere {
@@ -49,12 +57,15 @@ impl Hittable for Sphere {
         }
 
         let outward_normal = (&ray.at(root) - &self.center) / self.radius;
+        let (u, v) = Sphere::get_sphere_uv(&outward_normal);
         let rec = HitRecord::new(
             &ray,
             root,
             ray.at(root),
             outward_normal,
             self.material_rc.clone(),
+            u,
+            v,
         );
         Some(rec)
     }
