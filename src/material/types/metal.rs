@@ -61,7 +61,7 @@ mod test {
         let scatter = rec.material_rc.scatter(&r, &rec).unwrap();
         assert_eq!(scatter.ray.origin, Vec3::new(0., 0., -0.5));
         assert_eq!(
-            *scatter.attenuation.value(rec.v, rec.u, &rec.p),
+            scatter.attenuation.value(rec.v, rec.u, &rec.p),
             Color::new(0.5, 0.5, 0.5)
         );
 

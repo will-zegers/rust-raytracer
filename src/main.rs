@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
-use std::rc::Rc;
 use std::str::FromStr;
 
 use rand::Rng;
@@ -14,18 +13,18 @@ mod color;
 use color::Color;
 
 mod geometry;
-use geometry::{HittableList, Point3, Sphere, Vec3};
+use geometry::{Point3, Vec3};
 
 mod material;
-use material::types::{Dielectric, Lambertian, Metal};
-use material::Material;
+
+mod scene;
+use scene::{PerlinSpheres, RandomScene};
 
 mod texture;
-use crate::texture::{CheckerTexture, SolidColor};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 5 {
+    if args.len() < 5 {
         print_usage(&args[0]);
         std::process::exit(1);
     }
@@ -44,6 +43,13 @@ fn main() {
     let samples_per_pixel: i32 = args[3].parse().expect("invalid SAMPLES_PER_PIXEL param");
     let max_depth = args[4].parse().expect("invalid MAX_RAYTRACE_DEPTH param");
 
+    // World
+    let scene = 1;
+    let (aperture, world) = match scene {
+        0 => (0.1, RandomScene::new()),
+        _ => (0.0, PerlinSpheres::new()),
+    };
+
     // Camera
     let orientation = CameraOrientation {
         lookfrom: Point3::new(13., 2., 3.),
@@ -53,13 +59,10 @@ fn main() {
     let settings = CameraSettings {
         vfov: 20.0,
         aspect_ratio: 16.0 / 9.0,
-        aperture: 0.1,
+        aperture,
         focus_dist: 10.,
     };
     let camera = Camera::new(settings, orientation);
-
-    // World
-    let world = random_scene();
 
     // Render
     // write the PPM header to file
@@ -117,80 +120,6 @@ fn parse_dimensions(s: &str) -> Option<(i32, i32)> {
             _ => None,
         },
     }
-}
-
-fn random_scene() -> HittableList {
-    let mut world = HittableList::new();
-
-    let ground_texture = CheckerTexture {
-        odd: Box::new(SolidColor {
-            color: Color::new(0.1, 0.1, 0.1),
-        }),
-        even: Box::new(SolidColor {
-            color: Color::new(0.9, 0.9, 0.9),
-        }),
-    };
-    let ground_material = Lambertian::new(Box::new(ground_texture));
-    let ground_sphere = Sphere::new(Point3::new(0., -1000., 0.), 1000., Rc::new(ground_material));
-    world.add(Box::new(ground_sphere));
-
-    let mut rng = rand::thread_rng();
-    let ref_point = Point3::new(4.0, 0.2, 0.);
-
-    for a in -11..11 {
-        for b in -11..11 {
-            let center = Point3::new(
-                (a as f64) + 0.9 * rng.gen::<f64>(),
-                0.2,
-                (b as f64) + 0.9 * rng.gen::<f64>(),
-            );
-
-            if (&center - &ref_point).length() > 0.9 {
-                let material: Rc<dyn Material>;
-
-                let random_material = rng.gen::<f64>();
-                if random_material < 0.65 {
-                    // diffuse
-                    let albedo = Box::new(SolidColor {
-                        color: Color::random(0., 1.) * Color::random(0., 1.),
-                    });
-                    material = Rc::new(Lambertian::new(albedo));
-                } else if random_material < 0.85 {
-                    // metal
-                    let albedo = Box::new(SolidColor {
-                        color: Color::random(0., 1.),
-                    });
-                    let fuzz = rng.gen_range(0.0..0.25);
-                    material = Rc::new(Metal::new(albedo, fuzz));
-                } else {
-                    // glass
-                    material = Rc::new(Dielectric::new(1.5));
-                }
-                let sphere = Box::new(Sphere::new(center, 0.2, material));
-                world.add(sphere);
-            }
-        }
-    }
-
-    let material1 = Rc::new(Dielectric::new(1.5));
-    let sphere1 = Box::new(Sphere::new(Point3::new(0., 1., 0.), 1., material1));
-    world.add(sphere1);
-
-    let color2 = Box::new(SolidColor {
-        color: Color::new(0.4, 0.2, 0.1),
-    });
-    let material2 = Rc::new(Lambertian::new(color2));
-    let sphere2 = Box::new(Sphere::new(Point3::new(-4., 1., 0.), 1., material2));
-    world.add(sphere2);
-
-    let color3 = Box::new(SolidColor {
-        color: Color::new(0.7, 0.6, 0.5),
-    });
-    let material3 = Rc::new(Metal::new(color3, 0.0));
-    let sphere3 = Box::new(Sphere::new(Point3::new(4., 1., 0.), 1., material3));
-    world.add(sphere3);
-
-    world
 }
 
 #[cfg(test)]
