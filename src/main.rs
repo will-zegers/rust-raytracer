@@ -21,6 +21,7 @@ use material::types::{Dielectric, Lambertian, Metal};
 use material::Material;
 
 mod texture;
+use crate::texture::{CheckerTexture, SolidColor};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -121,12 +122,17 @@ fn parse_dimensions(s: &str) -> Option<(i32, i32)> {
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-    world.add(Box::new(Sphere::new(
-        Point3::new(0., -1000., 0.),
-        1000.,
-        ground_material,
-    )));
+    let ground_texture = CheckerTexture {
+        odd: Box::new(SolidColor {
+            color: Color::new(0.1, 0.1, 0.1),
+        }),
+        even: Box::new(SolidColor {
+            color: Color::new(0.9, 0.9, 0.9),
+        }),
+    };
+    let ground_material = Lambertian::new(Box::new(ground_texture));
+    let ground_sphere = Sphere::new(Point3::new(0., -1000., 0.), 1000., Rc::new(ground_material));
+    world.add(Box::new(ground_sphere));
 
     let mut rng = rand::thread_rng();
     let ref_point = Point3::new(4.0, 0.2, 0.);
@@ -140,47 +146,49 @@ fn random_scene() -> HittableList {
             );
 
             if (&center - &ref_point).length() > 0.9 {
-                let sphere_material: Rc<dyn Material>;
+                let material: Rc<dyn Material>;
 
                 let random_material = rng.gen::<f64>();
                 if random_material < 0.65 {
                     // diffuse
-                    let albedo = Color::random(0., 1.) * Color::random(0., 1.);
-                    sphere_material = Rc::new(Lambertian::new(albedo));
+                    let albedo = Box::new(SolidColor {
+                        color: Color::random(0., 1.) * Color::random(0., 1.),
+                    });
+                    material = Rc::new(Lambertian::new(albedo));
                 } else if random_material < 0.85 {
                     // metal
-                    let albedo = Color::random(0., 1.);
+                    let albedo = Box::new(SolidColor {
+                        color: Color::random(0., 1.),
+                    });
                     let fuzz = rng.gen_range(0.0..0.25);
-                    sphere_material = Rc::new(Metal::new(albedo, fuzz));
+                    material = Rc::new(Metal::new(albedo, fuzz));
                 } else {
                     // glass
-                    sphere_material = Rc::new(Dielectric::new(1.5));
+                    material = Rc::new(Dielectric::new(1.5));
                 }
-                world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                let sphere = Box::new(Sphere::new(center, 0.2, material));
+                world.add(sphere);
             }
         }
     }
 
     let material1 = Rc::new(Dielectric::new(1.5));
-    world.add(Box::new(Sphere::new(
-        Point3::new(0., 1., 0.),
-        1.,
-        material1,
-    )));
+    let sphere1 = Box::new(Sphere::new(Point3::new(0., 1., 0.), 1., material1));
+    world.add(sphere1);
 
-    let material2 = Rc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    world.add(Box::new(Sphere::new(
-        Point3::new(-4., 1., 0.),
-        1.,
-        material2,
-    )));
+    let color2 = Box::new(SolidColor {
+        color: Color::new(0.4, 0.2, 0.1),
+    });
+    let material2 = Rc::new(Lambertian::new(color2));
+    let sphere2 = Box::new(Sphere::new(Point3::new(-4., 1., 0.), 1., material2));
+    world.add(sphere2);
 
-    let material3 = Rc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Box::new(Sphere::new(
-        Point3::new(4., 1., 0.),
-        1.,
-        material3,
-    )));
+    let color3 = Box::new(SolidColor {
+        color: Color::new(0.7, 0.6, 0.5),
+    });
+    let material3 = Rc::new(Metal::new(color3, 0.0));
+    let sphere3 = Box::new(Sphere::new(Point3::new(4., 1., 0.), 1., material3));
+    world.add(sphere3);
 
     world
 }

@@ -1,17 +1,14 @@
-use crate::color::Color;
 use crate::geometry::{HitRecord, RandomVectorType, Ray, Vec3};
 use crate::material::{Material, Scatter};
-use crate::texture::{SolidColor, Texture};
+use crate::texture::Texture;
 
 pub struct Lambertian {
     albedo: Box<dyn Texture>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Self {
-        Self {
-            albedo: Box::new(SolidColor { color: albedo }),
-        }
+    pub fn new(albedo: Box<dyn Texture>) -> Self {
+        Self { albedo }
     }
 }
 
@@ -38,11 +35,16 @@ mod test {
     use std::rc::Rc;
 
     use crate::geometry::{Hittable, Point3, Ray, Sphere, Vec3};
+    use crate::texture::SolidColor;
+    use crate::Color;
 
     #[test]
     fn test_lambertian_scatter() {
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         let t_min = 0.;
@@ -53,7 +55,10 @@ mod test {
 
         let scatter = rec.material_rc.scatter(&r, &rec).unwrap();
         assert_eq!(scatter.ray.origin, Vec3::new(0., 0., -0.5));
-        assert_eq!(scatter.attenuation, Color::new(0.5, 0.5, 0.5));
+        assert_eq!(
+            *scatter.attenuation.value(rec.u, rec.v, &rec.p),
+            Color::new(0.5, 0.5, 0.5)
+        );
 
         // the actual scatter direction is hard to predict, but it should always be a unit vector
         // (i.e. |v| == 1) added to the normal of the hit point

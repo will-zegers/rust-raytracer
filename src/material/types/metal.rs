@@ -1,8 +1,7 @@
-use crate::color::Color;
 use crate::geometry::{HitRecord, RandomVectorType, Ray, Vec3};
 use crate::material;
 use crate::material::{Material, Scatter};
-use crate::texture::{SolidColor, Texture};
+use crate::texture::Texture;
 
 pub struct Metal {
     albedo: Box<dyn Texture>,
@@ -10,12 +9,9 @@ pub struct Metal {
 }
 
 impl Metal {
-    pub fn new(albedo: Color, fuzz: f64) -> Self {
+    pub fn new(albedo: Box<dyn Texture>, fuzz: f64) -> Self {
         debug_assert!(0. <= fuzz && fuzz <= 1.);
-        Self {
-            albedo: Box::new(SolidColor { color: albedo }),
-            fuzz,
-        }
+        Self { albedo, fuzz }
     }
 }
 
@@ -43,12 +39,17 @@ mod test {
     use std::rc::Rc;
 
     use crate::geometry::{Hittable, Point3, Ray, Sphere, Vec3};
+    use crate::texture::SolidColor;
+    use crate::Color;
 
     #[test]
     fn test_metal_scatter() {
         let origin = Point3::new(0.0, 0.0, 0.0);
         let fuzz = 0.5;
-        let material_rc = Rc::new(Metal::new(Color::new(0.5, 0.5, 0.5), fuzz));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Metal::new(color, fuzz));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         let t_min = 0.;
@@ -59,7 +60,10 @@ mod test {
 
         let scatter = rec.material_rc.scatter(&r, &rec).unwrap();
         assert_eq!(scatter.ray.origin, Vec3::new(0., 0., -0.5));
-        assert_eq!(scatter.attenuation, Color::new(0.5, 0.5, 0.5));
+        assert_eq!(
+            *scatter.attenuation.value(rec.v, rec.u, &rec.p),
+            Color::new(0.5, 0.5, 0.5)
+        );
 
         // the scattered ray direction is a bit tough to assert. this just makes sure the random
         // scattering is within the unit sphere (i.e. |v| < 1)

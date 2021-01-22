@@ -4,7 +4,6 @@ use std::rc::Rc;
 use super::{HitRecord, Hittable, Point3, Ray, Vec3, AABB};
 use crate::material::Material;
 
-#[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
@@ -81,13 +80,17 @@ mod test {
     use crate::color::Color;
     use crate::geometry::{Point3, Ray, Vec3};
     use crate::material::types::Lambertian;
+    use crate::texture::SolidColor;
 
     #[test]
     fn test_sphere_hit() {
         let mut rec: Option<HitRecord>;
 
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         let t_min = 0.;
@@ -106,7 +109,10 @@ mod test {
 
     #[test]
     fn test_sphere_bounding_box() {
-        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         assert_eq!(

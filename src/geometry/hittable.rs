@@ -113,6 +113,7 @@ mod test {
     use crate::color::Color;
     use crate::geometry::{Point3, Ray, Sphere, Vec3};
     use crate::material::types::Lambertian;
+    use crate::texture::SolidColor;
 
     struct GenericHittable;
     impl Hittable for GenericHittable {
@@ -134,7 +135,10 @@ mod test {
         let t = 0.5;
         let p = Vec3::new(0.0, 0.0, -0.5);
         let normal = Vec3::new(0.0, 0.0, 1.0);
-        let material_rc = Rc::new(Lambertian::new(Color::new(0., 0., 0.)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0., 0., 0.),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
 
         rec = HitRecord::new(
             &ray_opposite_direction,
@@ -142,6 +146,8 @@ mod test {
             p.clone(),
             normal.clone(),
             material_rc.clone(),
+            0.,
+            0.,
         );
         assert_eq!(rec.t, t);
         assert_eq!(&rec.p, &p);
@@ -155,6 +161,8 @@ mod test {
             p.clone(),
             normal.clone(),
             material_rc.clone(),
+            0.,
+            0.,
         );
         assert_eq!(rec.t, t);
         assert_eq!(&rec.p, &p);
@@ -207,7 +215,10 @@ mod test {
         let miss = rec.is_none();
         assert!(miss);
 
-        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
         world.add(Box::new(sphere));
 
@@ -226,15 +237,32 @@ mod test {
         let mut world = HittableList::new();
         assert!(world.bounding_box().is_none());
 
-        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
         let sphere1 = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc.clone());
-        world.add(Box::new(sphere1.clone()));
+        world.add(Box::new(sphere1));
 
         assert!(world.bounding_box().is_some());
-        assert!(world.bounding_box() == sphere1.bounding_box());
+        assert!(
+            *world.bounding_box().unwrap()
+                == AABB {
+                    minimum: Vec3 {
+                        x: -0.5,
+                        y: -0.5,
+                        z: -1.5
+                    },
+                    maximum: Vec3 {
+                        x: 0.5,
+                        y: 0.5,
+                        z: -0.5
+                    }
+                }
+        );
 
         let sphere2 = Sphere::new(Point3::new(1., 0., -1.), 0.5, material_rc.clone());
-        world.add(Box::new(sphere2.clone()));
+        world.add(Box::new(sphere2));
         assert_eq!(
             *world.bounding_box().unwrap(),
             AABB {
@@ -244,7 +272,7 @@ mod test {
         );
 
         let sphere3 = Sphere::new(Point3::new(0., 1., 0.), 0.5, material_rc.clone());
-        world.add(Box::new(sphere3.clone()));
+        world.add(Box::new(sphere3));
         assert_eq!(
             *world.bounding_box().unwrap(),
             AABB {
@@ -254,7 +282,7 @@ mod test {
         );
 
         let sphere4 = Sphere::new(Point3::new(-1., -1., 0.), 0.5, material_rc.clone());
-        world.add(Box::new(sphere4.clone()));
+        world.add(Box::new(sphere4));
         assert_eq!(
             *world.bounding_box().unwrap(),
             AABB {

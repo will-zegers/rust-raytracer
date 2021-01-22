@@ -44,11 +44,14 @@ impl Ray {
 
 #[cfg(test)]
 mod test {
+    use std::rc::Rc;
+
     use super::*;
+
     use crate::geometry::HitRecord;
     use crate::geometry::Sphere;
     use crate::material::types::Lambertian;
-    use std::rc::Rc;
+    use crate::texture::SolidColor;
 
     #[test]
     fn test_ray_new() {
@@ -73,7 +76,10 @@ mod test {
     #[test]
     fn test_ray_color() {
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         let depth = 1;
@@ -96,7 +102,10 @@ mod test {
         let mut rec: Option<HitRecord>;
 
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let material_rc = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        let color = Box::new(SolidColor {
+            color: Color::new(0.5, 0.5, 0.5),
+        });
+        let material_rc = Rc::new(Lambertian::new(color));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
         let t_min = 0.;
