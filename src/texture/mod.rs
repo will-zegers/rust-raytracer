@@ -8,6 +8,7 @@ mod noise;
 pub use noise::Noise;
 
 mod perlin;
+pub use perlin::NoiseStrategy;
 use perlin::Perlin;
 
 mod solid_color;

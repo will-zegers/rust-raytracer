@@ -1,41 +1,78 @@
-use rand::Rng;
 use rand::seq::SliceRandom;
 
-use crate::geometry::Point3;
+use crate::geometry::{Point3, RandomVectorType, Vec3};
 
 pub struct Perlin {
-    random_float: [f64; Perlin::POINT_COUNT],
     perm_x: Vec<usize>,
     perm_y: Vec<usize>,
     perm_z: Vec<usize>,
+    random_uvec: Vec<Vec3>,
+
+    pub noise: fn(&Self, &Point3) -> f64,
+}
+
+pub enum NoiseStrategy {
+    PerlinInterpolation,
 }
 
 impl Perlin {
     const POINT_COUNT: usize = 256;
 
-    pub fn new() -> Perlin {
-        let mut rng = rand::thread_rng();
-
-        let mut random_float = [0_f64; Perlin::POINT_COUNT];
-        for elem in random_float.iter_mut() {
-            *elem = rng.gen();
+    pub fn new(strategy: NoiseStrategy) -> Perlin {
+        let mut random_uvec: Vec<Vec3> = Vec::with_capacity(Perlin::POINT_COUNT);
+        for _ in 0 .. Perlin::POINT_COUNT {
+            random_uvec.push(Vec3::random(RandomVectorType::Unit));
         }
 
         Perlin {
-            random_float,
             perm_x: generate_permutation(Perlin::POINT_COUNT),
             perm_y: generate_permutation(Perlin::POINT_COUNT),
             perm_z: generate_permutation(Perlin::POINT_COUNT),
+            random_uvec,
+            noise: match strategy {
+                NoiseStrategy::PerlinInterpolation => Self::hermitian_smoothing_noise,
+            },
         }
     }
 
-    pub fn noise(&self, p: &Point3) -> f64 {
-        let i = ((4. * f64::abs(p.x)) as usize) & (Perlin::POINT_COUNT - 1);
-        let j = ((4. * f64::abs(p.y)) as usize) & (Perlin::POINT_COUNT - 1);
-        let k = ((4. * f64::abs(p.z)) as usize) & (Perlin::POINT_COUNT - 1);
+    pub fn turbulence(&self, p: &Point3, depth: u32) -> f64 {
+        let mut accum = 0.;
+        let mut temp_p = p.clone();
+        let mut weight = 1.;
 
-        let index = self.perm_x[i] ^ self.perm_y[j] ^ self.perm_z[k];
-        self.random_float[index]
+        for _ in 0..depth {
+            accum += weight*(self.noise)(&self, &temp_p);
+            weight *= 0.5;
+            temp_p = 2. * temp_p;
+        }
+
+        f64::abs(accum)
+    }
+
+    fn hermitian_smoothing_noise(&self, p: &Point3) -> f64 {
+        let u = p.x - f64::floor(p.x);
+        let v = p.y - f64::floor(p.y);
+        let w = p.z - f64::floor(p.z);
+
+        let i = f64::floor(p.x) as isize as usize;
+        let j = f64::floor(p.y) as isize as usize;
+        let k = f64::floor(p.z) as isize as usize;
+
+        // flattened 2x2x2 array
+        // let mut c = [Vec3::new(0., 0., 0.); 8];
+        let mut c: Vec<&Vec3> = Vec::with_capacity(8);
+        for di in 0..2 {
+            for dj in 0..2 {
+                for dk in 0..2 {
+                    c.push(&self.random_uvec[
+                        self.perm_x[(i + di) & 255]
+                        ^ self.perm_y[(j + dj) & 255]
+                        ^ self.perm_z[(k + dk) & 255]]);
+                }
+            }
+        }
+
+        perlin_interpolation(c, u, v, w)
     }
 }
 
@@ -44,6 +81,34 @@ fn generate_permutation(n: usize) -> Vec<usize> {
     v.shuffle(&mut rand::thread_rng());
 
     v
+}
+
+fn perlin_interpolation(c: Vec<&Vec3>, u: f64, v: f64, w: f64) -> f64 {
+    let uu = u * u * (3. - 2. * u);
+    let vv = v * v * (3. - 2. * v);
+    let ww = w * w * (3. - 2. * w);
+    let mut accum = 0.;
+
+    for i in 0..2 {
+        for j in 0..2 {
+            for k in 0..2 {
+                let idx = k + 2 * (j + 2 * i);
+
+                let i = i as f64;
+                let j = j as f64;
+                let k = k as f64;
+
+                let weight_vec = Vec3::new(u-i, v-j, w-k);
+                accum +=
+                    (i * uu + (1. - i) * (1. - uu))
+                    * (j * vv + (1. - j) * (1. - vv))
+                    * (k * ww + (1. - k) * (1. - ww))
+                    * Vec3::dot(&c[idx], &weight_vec);
+            }
+        }
+    }
+
+    accum
 }
 
 #[cfg(test)]
