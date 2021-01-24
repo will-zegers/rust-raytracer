@@ -4,6 +4,9 @@ use crate::geometry::Point3;
 mod checker;
 pub use checker::Checker;
 
+mod image;
+pub use image::ImageTexture;
+
 mod noise;
 pub use noise::Noise;
 

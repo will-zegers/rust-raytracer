@@ -17,7 +17,7 @@ impl Ray {
         &self.origin + t * &self.direction
     }
 
-    pub fn color(&self, world: &dyn Hittable, depth: i32) -> Color {
+    pub fn color(&self, world: &dyn Hittable, depth: i32, background: &Color) -> Color {
         // If we've exceeded the ray bounce lmit, no more light is gathered.
         if depth <= 0 {
             return Color::new(0., 0., 0.);
@@ -26,19 +26,17 @@ impl Ray {
         match world.hit(&self, 0.001, std::f64::INFINITY) {
             Some(rec) => match rec.material_rc.scatter(&self, &rec) {
                 Some(scatter) => {
-                    return scatter.attenuation.value(rec.u, rec.v, &rec.p)
-                        * scatter.ray.color(world, depth - 1);
+                    let emitted = rec.material_rc.emit(rec.u, rec.v, &rec.p);
+                    return emitted + scatter.attenuation.value(rec.u, rec.v, &rec.p)
+                        * scatter.ray.color(world, depth - 1, background);
                 }
                 None => {
-                    return Color::new(0., 0., 0.);
+                    return rec.material_rc.emit(rec.u, rec.v, &rec.p);
                 }
             },
-            None => (),
+            // If the ray hits nothing, return the background color
+            None => return background.clone(),
         }
-
-        let unit_direction = self.direction.unit_vector();
-        let t = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
     }
 }
 
@@ -82,19 +80,18 @@ mod test {
         let material_rc = Rc::new(Lambertian::new(color));
         let sphere = Sphere::new(Point3::new(0., 0., -1.), 0.5, material_rc);
 
-        let depth = 1;
+        let depth = 10;
+        let background = Color::new(0.5, 0.7, 1.0);
 
         let r = Ray::new(origin.clone(), Vec3::new(0.0, -1.0, 0.0));
-        let c_white = r.color(&sphere, depth);
-        assert_eq!(c_white, Color::new(1.0, 1.0, 1.0));
+        assert!(sphere.hit(&r, 0.001, std::f64::INFINITY).is_none());
+        let c_bg = r.color(&sphere, depth, &background);
+        assert_eq!(c_bg, background);
 
-        let r = Ray::new(origin.clone(), Vec3::new(1.0, 0.0, 1.0));
-        let c_mid = r.color(&sphere, depth);
-        assert_eq!(c_mid, Color::new(0.75, 0.85, 1.0));
-
-        let r = Ray::new(origin.clone(), Vec3::new(0.0, 1.0, 0.0));
-        let c_blue = r.color(&sphere, depth);
-        assert_eq!(c_blue, Color::new(0.5, 0.7, 1.0));
+        let r = Ray::new(origin.clone(), Vec3::new(0.0, 0.0, -1.0));
+        assert!(sphere.hit(&r, 0.001, std::f64::INFINITY).is_some());
+        let c_fg = r.color(&sphere, depth, &background);
+        assert_eq!(c_fg, Color::new(0.25, 0.35, 0.5));
     }
 
     #[test]

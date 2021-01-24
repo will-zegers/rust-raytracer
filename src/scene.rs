@@ -9,7 +9,7 @@ use crate::geometry::{HittableList, Point3, Sphere};
 use crate::material::types::{Dielectric, Lambertian, Metal};
 use crate::material::Material;
 
-use crate::texture::{Checker, Noise, NoiseStrategy, SolidColor};
+use crate::texture::{Checker, ImageTexture, Noise, NoiseStrategy, SolidColor};
 
 pub struct RandomScene;
 
@@ -108,6 +108,21 @@ impl PerlinSpheres {
 
         let sphere2 = Box::new(Sphere::new(Point3::new(0., 2., 0.), 2., material.clone()));
         world.add(sphere2);
+
+        world
+    }
+}
+
+pub struct Earth();
+
+impl Earth {
+    pub fn new() -> HittableList {
+        let texture = Box::new(ImageTexture::new());
+        let surface = Rc::new(Lambertian::new(texture));
+        let globe = Box::new(Sphere::new(Point3::new(0., 0., 0.), 2., surface));
+
+        let mut world = HittableList::new();
+        world.add(globe);
 
         world
     }

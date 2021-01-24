@@ -20,7 +20,7 @@ impl Perlin {
 
     pub fn new(strategy: NoiseStrategy) -> Perlin {
         let mut random_uvec: Vec<Vec3> = Vec::with_capacity(Perlin::POINT_COUNT);
-        for _ in 0 .. Perlin::POINT_COUNT {
+        for _ in 0..Perlin::POINT_COUNT {
             random_uvec.push(Vec3::random(RandomVectorType::Unit));
         }
 
@@ -41,7 +41,7 @@ impl Perlin {
         let mut weight = 1.;
 
         for _ in 0..depth {
-            accum += weight*(self.noise)(&self, &temp_p);
+            accum += weight * (self.noise)(&self, &temp_p);
             weight *= 0.5;
             temp_p = 2. * temp_p;
         }
@@ -64,10 +64,11 @@ impl Perlin {
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {
-                    c.push(&self.random_uvec[
-                        self.perm_x[(i + di) & 255]
-                        ^ self.perm_y[(j + dj) & 255]
-                        ^ self.perm_z[(k + dk) & 255]]);
+                    c.push(
+                        &self.random_uvec[self.perm_x[(i + di) & 255]
+                            ^ self.perm_y[(j + dj) & 255]
+                            ^ self.perm_z[(k + dk) & 255]],
+                    );
                 }
             }
         }
@@ -98,9 +99,8 @@ fn perlin_interpolation(c: Vec<&Vec3>, u: f64, v: f64, w: f64) -> f64 {
                 let j = j as f64;
                 let k = k as f64;
 
-                let weight_vec = Vec3::new(u-i, v-j, w-k);
-                accum +=
-                    (i * uu + (1. - i) * (1. - uu))
+                let weight_vec = Vec3::new(u - i, v - j, w - k);
+                accum += (i * uu + (1. - i) * (1. - uu))
                     * (j * vv + (1. - j) * (1. - vv))
                     * (k * ww + (1. - k) * (1. - ww))
                     * Vec3::dot(&c[idx], &weight_vec);

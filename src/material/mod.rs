@@ -2,7 +2,8 @@
 
 pub mod types;
 
-use crate::geometry::{HitRecord, Ray, Vec3};
+use crate::color::Color;
+use crate::geometry::{HitRecord, Point3, Ray, Vec3};
 use crate::texture::Texture;
 
 pub struct Scatter<'a> {
@@ -12,6 +13,10 @@ pub struct Scatter<'a> {
 
 pub trait Material {
     fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<Scatter>;
+
+    fn emit(&self, _u: f64, _v: f64, _p: &Point3) -> Color {
+        Color::new(0., 0., 0.)
+    }
 }
 
 pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {

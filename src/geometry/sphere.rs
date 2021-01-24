@@ -29,7 +29,7 @@ impl Sphere {
         let theta = f64::acos(-p.y);
         let phi = f64::atan2(-p.z, p.x) + PI;
 
-        (phi / 2. * PI, theta / PI)
+        (phi / (2. * PI), theta / PI)
     }
 }
 

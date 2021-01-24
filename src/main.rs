@@ -18,7 +18,7 @@ use geometry::{Point3, Vec3};
 mod material;
 
 mod scene;
-use scene::{PerlinSpheres, RandomScene};
+use scene::{Earth, PerlinSpheres, RandomScene};
 
 mod texture;
 
@@ -44,10 +44,28 @@ fn main() {
     let max_depth = args[4].parse().expect("invalid MAX_RAYTRACE_DEPTH param");
 
     // World
-    let scene = 1;
-    let (aperture, world) = match scene {
-        0 => (0.1, RandomScene::new()),
-        _ => (0.0, PerlinSpheres::new()),
+    let scene = 0;
+    let (aperture, background, world) = match scene {
+        1 => (
+            0.0,
+            Color::new(0.7, 0.8, 1.),
+            PerlinSpheres::new()
+        ),
+        2 => (
+            0.0,
+            Color::new(0.7, 0.8, 1.),
+            Earth::new()
+        ),
+        3 => (
+            0.0,
+            Color::new(0., 0., 0.),
+            Earth::new(),
+        ),
+        _ => (
+            0.0,
+            Color::new(0.7, 0.8, 1.),
+            RandomScene::new()
+        ),
     };
 
     // Camera
@@ -80,7 +98,7 @@ fn main() {
                 let u = ((i as f64) + rng.gen::<f64>()) / ((image_width - 1) as f64);
                 let v = ((j as f64) + rng.gen::<f64>()) / ((image_height - 1) as f64);
                 let r = camera.get_ray(u, v);
-                pixel_color += r.color(&world, max_depth);
+                pixel_color += r.color(&world, max_depth, &background);
             }
 
             let pixel = color::get_pixel(pixel_color, samples_per_pixel);
@@ -131,7 +149,7 @@ mod test {
         assert_eq!(parse_dimensions(""), None);
         assert_eq!(parse_dimensions("10x"), None);
         assert_eq!(parse_dimensions("x10"), None);
-        assert_eq!(parse_dimensions("10x20"), Some((10, 20)));
         assert_eq!(parse_dimensions("10x20foo"), None);
+        assert_eq!(parse_dimensions("10x20"), Some((10, 20)));
     }
 }
