@@ -15,3 +15,6 @@ pub use hittable::{HitRecord, Hittable, HittableList};
 
 mod vec3;
 pub use vec3::{Point3, RandomVectorType, Vec3};
+
+mod rect;
+pub use rect::{AxisAlignment, Rect, RectCorner};

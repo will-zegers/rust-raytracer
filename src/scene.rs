@@ -4,9 +4,9 @@ use rand::Rng;
 
 use crate::color::Color;
 
-use crate::geometry::{HittableList, Point3, Sphere};
+use crate::geometry::{AxisAlignment, HittableList, Point3, Rect, RectCorner, Sphere};
 
-use crate::material::types::{Dielectric, Lambertian, Metal};
+use crate::material::types::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::material::Material;
 
 use crate::texture::{Checker, ImageTexture, Noise, NoiseStrategy, SolidColor};
@@ -113,7 +113,7 @@ impl PerlinSpheres {
     }
 }
 
-pub struct Earth();
+pub struct Earth;
 
 impl Earth {
     pub fn new() -> HittableList {
@@ -123,6 +123,119 @@ impl Earth {
 
         let mut world = HittableList::new();
         world.add(globe);
+
+        world
+    }
+}
+
+pub struct SimpleLight;
+
+impl SimpleLight {
+    pub fn new() -> HittableList {
+        let mut world = PerlinSpheres::new();
+
+        let light_color = Color::new(4., 2., 2.);
+        let diffuse_light = Rc::new(DiffuseLight::new(light_color));
+
+        let light_rect2 = Box::new(Rect::new(
+            AxisAlignment::YZ,
+            RectCorner(3., 1.),
+            RectCorner(5., 3.),
+            -2.,
+            diffuse_light,
+        ));
+        world.add(light_rect2);
+
+        world
+    }
+}
+
+pub struct SimpleColoredLights;
+
+impl SimpleColoredLights {
+    pub fn new() -> HittableList {
+        let mut world = PerlinSpheres::new();
+
+        let light_color1 = Color::new(4., 0.5, 0.5);
+        let diffuse_light1 = Rc::new(DiffuseLight::new(light_color1));
+        let sphere1 = Box::new(Sphere::new(Point3::new(3., 5., 3.5), 1., diffuse_light1));
+        world.add(sphere1);
+
+        let light_color2 = Color::new(0.5, 0.5, 4.);
+        let diffuse_light2 = Rc::new(DiffuseLight::new(light_color2));
+        let sphere2 = Box::new(Sphere::new(Point3::new(4., 3., -3.5), 1., diffuse_light2));
+        world.add(sphere2);
+
+        let light_color3 = Color::new(0.5, 4., 0.5);
+        let diffuse_light3 = Rc::new(DiffuseLight::new(light_color3));
+        let sphere3 = Box::new(Sphere::new(Point3::new(6., 1., 0.), 1., diffuse_light3));
+        world.add(sphere3);
+
+        world
+    }
+}
+
+pub struct CornellBox;
+
+impl CornellBox {
+    pub fn new() -> HittableList {
+        let mut world = HittableList::new();
+
+        let red = Rc::new(Lambertian::new(Box::new(SolidColor {
+            color: Color::new(0.65, 0.05, 0.05),
+        })));
+        world.add(Box::new(Rect::new(
+            AxisAlignment::YZ,
+            RectCorner(555., 555.),
+            RectCorner(0., 0.),
+            0.,
+            red,
+        )));
+
+        let green = Rc::new(Lambertian::new(Box::new(SolidColor {
+            color: Color::new(0.12, 0.45, 0.15),
+        })));
+        world.add(Box::new(Rect::new(
+            AxisAlignment::YZ,
+            RectCorner(555., 555.),
+            RectCorner(0., 0.),
+            555.,
+            green,
+        )));
+
+        let white = Rc::new(Lambertian::new(Box::new(SolidColor {
+            color: Color::new(0.73, 0.73, 0.73),
+        })));
+        world.add(Box::new(Rect::new(
+            AxisAlignment::XZ,
+            RectCorner(555., 555.),
+            RectCorner(0., 0.),
+            0.,
+            white.clone(),
+        )));
+        world.add(Box::new(Rect::new(
+            AxisAlignment::XZ,
+            RectCorner(555., 555.),
+            RectCorner(0., 0.),
+            555.,
+            white.clone(),
+        )));
+        world.add(Box::new(Rect::new(
+            AxisAlignment::XY,
+            RectCorner(555., 555.),
+            RectCorner(0., 0.),
+            555.,
+            white.clone(),
+        )));
+
+        let light = Rc::new(DiffuseLight::new(Color::new(15., 15., 15.)));
+        world.add(Box::new(Rect::new(
+            AxisAlignment::XZ,
+            RectCorner(343., 332.),
+            RectCorner(213., 227.),
+            554.,
+            light,
+        )));
 
         world
     }

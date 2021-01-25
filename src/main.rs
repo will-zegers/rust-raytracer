@@ -13,12 +13,12 @@ mod color;
 use color::Color;
 
 mod geometry;
-use geometry::{Point3, Vec3};
+use geometry::{HittableList, Point3, Vec3};
 
 mod material;
 
 mod scene;
-use scene::{Earth, PerlinSpheres, RandomScene};
+use scene::{CornellBox, Earth, PerlinSpheres, RandomScene, SimpleColoredLights, SimpleLight};
 
 mod texture;
 
@@ -44,39 +44,52 @@ fn main() {
     let max_depth = args[4].parse().expect("invalid MAX_RAYTRACE_DEPTH param");
 
     // World
-    let scene = 0;
-    let (aperture, background, world) = match scene {
-        1 => (
-            0.0,
-            Color::new(0.7, 0.8, 1.),
-            PerlinSpheres::new()
-        ),
-        2 => (
-            0.0,
-            Color::new(0.7, 0.8, 1.),
-            Earth::new()
-        ),
-        3 => (
-            0.0,
-            Color::new(0., 0., 0.),
-            Earth::new(),
-        ),
-        _ => (
-            0.0,
-            Color::new(0.7, 0.8, 1.),
-            RandomScene::new()
-        ),
+    let world: HittableList;
+    let mut aperture = 0.0;
+    let mut aspect_ratio = 16.0 / 9.0;
+    let mut background = Color::new(0.7, 0.8, 1.);
+    let mut lookat = Point3::new(0., 0., 0.);
+    let mut lookfrom = Point3::new(13., 2., 3.);
+    let mut vfov = 20.;
+
+    let scene = 5;
+    match scene {
+        1 => world = PerlinSpheres::new(),
+        2 => world = Earth::new(),
+        3 => {
+            background = Color::new(0., 0., 0.);
+            lookat = Point3::new(0., 2., 0.);
+            lookfrom = Point3::new(26., 3., 6.);
+            world = SimpleLight::new();
+        }
+        4 => {
+            background = Color::new(0., 0., 0.);
+            lookat = Point3::new(0., 2., 0.);
+            lookfrom = Point3::new(26., 3., 6.);
+            world = SimpleColoredLights::new();
+        }
+        5 => {
+            aspect_ratio = 1.;
+            lookat = Point3::new(278., 278., 0.);
+            lookfrom = Point3::new(278., 278., -800.);
+            vfov = 40.;
+            world = CornellBox::new();
+        }
+        _ => {
+            aperture = 0.1;
+            world = RandomScene::new();
+        }
     };
 
     // Camera
     let orientation = CameraOrientation {
-        lookfrom: Point3::new(13., 2., 3.),
-        lookat: Point3::new(0.0, 0.0, 0.0),
+        lookfrom,
+        lookat,
         vup: Vec3::new(0.0, 1.0, 0.0),
     };
     let settings = CameraSettings {
-        vfov: 20.0,
-        aspect_ratio: 16.0 / 9.0,
+        vfov: vfov,
+        aspect_ratio: aspect_ratio,
         aperture,
         focus_dist: 10.,
     };

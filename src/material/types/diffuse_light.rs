@@ -1,10 +1,18 @@
 use crate::color::Color;
 use crate::geometry::{HitRecord, Point3, Ray};
 use crate::material::{Material, Scatter};
-use crate::texture::Texture;
+use crate::texture::{SolidColor, Texture};
 
 pub struct DiffuseLight {
-    emit: Box<dyn Texture>,
+    pub emit: Box<SolidColor>,
+}
+
+impl DiffuseLight {
+    pub fn new(color: Color) -> DiffuseLight {
+        DiffuseLight {
+            emit: Box::new(SolidColor { color }),
+        }
+    }
 }
 
 impl Material for DiffuseLight {

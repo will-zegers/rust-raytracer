@@ -27,8 +27,9 @@ impl Ray {
             Some(rec) => match rec.material_rc.scatter(&self, &rec) {
                 Some(scatter) => {
                     let emitted = rec.material_rc.emit(rec.u, rec.v, &rec.p);
-                    return emitted + scatter.attenuation.value(rec.u, rec.v, &rec.p)
-                        * scatter.ray.color(world, depth - 1, background);
+                    return emitted
+                        + scatter.attenuation.value(rec.u, rec.v, &rec.p)
+                            * scatter.ray.color(world, depth - 1, background);
                 }
                 None => {
                     return rec.material_rc.emit(rec.u, rec.v, &rec.p);

@@ -26,15 +26,12 @@ impl ImageTexture {
         match image::load(filename) {
             LoadResult::Error(s) => panic!("Error loading image: {}", s),
             LoadResult::ImageF32(_) => panic!("Sorry, can't hangle f32 image format (yet)"),
-            LoadResult::ImageU8(img) => {
-                ImageTexture {
-                    data: img.data,
-                    height: img.height,
-                    width: img.width,
-                    bytes_per_scanline: img.width * ImageTexture::BYTES_PER_PIXEL,
-
-                }
-            }
+            LoadResult::ImageU8(img) => ImageTexture {
+                data: img.data,
+                height: img.height,
+                width: img.width,
+                bytes_per_scanline: img.width * ImageTexture::BYTES_PER_PIXEL,
+            },
         }
     }
 
