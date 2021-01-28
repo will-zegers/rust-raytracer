@@ -1,4 +1,5 @@
-use crate::geometry::{HitRecord, RandomVectorType, Ray, Vec3};
+use crate::geometry::{RandomVectorType, Ray, Vec3};
+use crate::hittable::HitRecord;
 use crate::material;
 use crate::material::{Material, Scatter};
 use crate::texture::Texture;
@@ -38,7 +39,8 @@ mod test {
 
     use std::rc::Rc;
 
-    use crate::geometry::{Hittable, Point3, Ray, Sphere, Vec3};
+    use crate::geometry::{Point3, Ray, Sphere, Vec3};
+    use crate::hittable::Hittable;
     use crate::texture::SolidColor;
     use crate::Color;
 

@@ -1,7 +1,8 @@
 use std::f64::consts::PI;
 use std::rc::Rc;
 
-use super::{HitRecord, Hittable, Point3, Ray, Vec3, AABB};
+use crate::hittable::{AABB, HitRecord, Hittable};
+use super::{Point3, Ray, Vec3};
 use crate::material::Material;
 
 pub struct Sphere {

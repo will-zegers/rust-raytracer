@@ -1,6 +1,7 @@
-use crate::color::Color;
+use super::{Point3, Vec3};
 
-use super::{Hittable, Point3, Vec3};
+use crate::color::Color;
+use crate::hittable::Hittable;
 
 #[derive(Debug, PartialEq)]
 pub struct Ray {
@@ -47,7 +48,7 @@ mod test {
 
     use super::*;
 
-    use crate::geometry::HitRecord;
+    use crate::hittable::HitRecord;
     use crate::geometry::Sphere;
     use crate::material::types::Lambertian;
     use crate::texture::SolidColor;

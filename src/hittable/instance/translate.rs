@@ -1,10 +1,10 @@
+use super::super::*;
+
 use crate::geometry::{
-    AABB,
-    Hittable,
-    HitRecord,
     Ray,
     Vec3,
 };
+use crate::hittable::{AABB, Hittable};
 
 pub struct Translate {
     ptr: Box<dyn Hittable>,

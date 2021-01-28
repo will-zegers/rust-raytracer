@@ -3,7 +3,8 @@
 pub mod types;
 
 use crate::color::Color;
-use crate::geometry::{HitRecord, Point3, Ray, Vec3};
+use crate::geometry::{Point3, Ray, Vec3};
+use crate::hittable::HitRecord;
 use crate::texture::Texture;
 
 pub struct Scatter<'a> {

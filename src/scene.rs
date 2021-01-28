@@ -4,9 +4,10 @@ use rand::Rng;
 
 use crate::color::Color;
 
-use crate::geometry::{AxisAlignment, Block, HittableList, Point3, Rect, RectCorner, Sphere, Vec3};
+use crate::geometry::{AxisAlignment, Block, Point3, Rect, RectCorner, Sphere, Vec3};
 
-use crate::instance::{Rotate, Translate};
+use crate::hittable::HittableList;
+use crate::hittable::instance::{Rotate, Translate};
 
 use crate::material::types::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::material::Material;

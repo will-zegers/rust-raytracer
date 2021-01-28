@@ -7,7 +7,8 @@ use std::rc::Rc;
 
 use rand::Rng;
 
-use super::{HitRecord, Hittable, Ray, AABB};
+use crate::hittable::{AABB, HitRecord, Hittable};
+use super::Ray;
 
 pub struct BVHNode {
     left: Rc<dyn Hittable>,

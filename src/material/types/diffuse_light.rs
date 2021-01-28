@@ -1,5 +1,6 @@
 use crate::color::Color;
-use crate::geometry::{HitRecord, Point3, Ray};
+use crate::geometry::{Point3, Ray};
+use crate::hittable::HitRecord;
 use crate::material::{Material, Scatter};
 use crate::texture::{SolidColor, Texture};
 

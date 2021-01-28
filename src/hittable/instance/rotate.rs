@@ -1,10 +1,9 @@
 use std::f64::{INFINITY, NEG_INFINITY};
 use std::f64::consts::PI;
 
+use super::super::*;
+
 use crate::geometry::{
-    AABB,
-    Hittable,
-    HitRecord,
     Point3,
     Ray,
     Vec3,

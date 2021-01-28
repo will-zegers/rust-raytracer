@@ -13,9 +13,10 @@ mod color;
 use color::Color;
 
 mod geometry;
-use geometry::{HittableList, Point3, Vec3};
+use geometry::{Point3, Vec3};
 
-mod instance;
+mod hittable;
+use hittable::HittableList;
 
 mod material;
 
@@ -54,7 +55,7 @@ fn main() {
     let mut lookfrom = Point3::new(13., 2., 3.);
     let mut vfov = 20.;
 
-    let scene = 5;
+    let scene = 0;
     match scene {
         1 => world = PerlinSpheres::new(),
         2 => world = Earth::new(),

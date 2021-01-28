@@ -1,7 +1,8 @@
 use rand::Rng;
 
 use crate::color::Color;
-use crate::geometry::{HitRecord, Ray, Vec3};
+use crate::geometry::{Ray, Vec3};
+use crate::hittable::HitRecord;
 use crate::material;
 use crate::material::{Material, Scatter};
 use crate::texture::{SolidColor, Texture};
@@ -59,7 +60,8 @@ mod test {
 
     use std::rc::Rc;
 
-    use crate::geometry::{Hittable, Point3, Ray, Sphere, Vec3};
+    use crate::geometry::{Point3, Ray, Sphere, Vec3};
+    use crate::hittable::Hittable;
 
     #[test]
     fn test_dielectric_scatter() {

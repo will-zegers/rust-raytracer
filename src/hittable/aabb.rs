@@ -1,6 +1,6 @@
 // TODO: add unit tests
 
-use super::{Point3, Ray};
+use crate::geometry::{Point3, Ray};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct AABB {
