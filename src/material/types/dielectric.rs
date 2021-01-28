@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use rand::Rng;
 
 use crate::color::Color;
@@ -8,14 +10,14 @@ use crate::material::{Material, Scatter};
 use crate::texture::{SolidColor, Texture};
 
 pub struct Dielectric {
-    albedo: Box<dyn Texture>,
+    albedo: Rc<dyn Texture>,
     index_of_refraction: f64,
 }
 
 impl Dielectric {
     pub fn new(index_of_refraction: f64) -> Self {
         Self {
-            albedo: Box::new(SolidColor {
+            albedo: Rc::new(SolidColor {
                 color: Color::new(1., 1., 1.),
             }),
             index_of_refraction,
@@ -49,7 +51,7 @@ impl Material for Dielectric {
 
         Some(Scatter {
             ray: Ray::new(rec.p.clone(), direction),
-            attenuation: &self.albedo,
+            attenuation: self.albedo.clone(),
         })
     }
 }

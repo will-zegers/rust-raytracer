@@ -1,14 +1,16 @@
+use std::rc::Rc;
+
 use crate::geometry::{RandomVectorType, Ray, Vec3};
 use crate::hittable::HitRecord;
 use crate::material::{Material, Scatter};
 use crate::texture::Texture;
 
 pub struct Lambertian {
-    albedo: Box<dyn Texture>,
+    albedo: Rc<dyn Texture>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Box<dyn Texture>) -> Self {
+    pub fn new(albedo: Rc<dyn Texture>) -> Self {
         Self { albedo }
     }
 }
@@ -24,7 +26,7 @@ impl Material for Lambertian {
 
         Some(Scatter {
             ray: Ray::new(rec.p.clone(), scatter_direction),
-            attenuation: &self.albedo,
+            attenuation: self.albedo.clone(),
         })
     }
 }
@@ -43,7 +45,7 @@ mod test {
     #[test]
     fn test_lambertian_scatter() {
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Lambertian::new(color));

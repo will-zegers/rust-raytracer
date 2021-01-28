@@ -77,6 +77,7 @@ impl Hittable for Sphere {
 
 #[cfg(test)]
 mod test {
+    use std::rc::Rc;
     use super::*;
     use crate::color::Color;
     use crate::geometry::{Point3, Ray, Vec3};
@@ -88,7 +89,7 @@ mod test {
         let mut rec: Option<HitRecord>;
 
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Lambertian::new(color));
@@ -110,7 +111,7 @@ mod test {
 
     #[test]
     fn test_sphere_bounding_box() {
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Lambertian::new(color));

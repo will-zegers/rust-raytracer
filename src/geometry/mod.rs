@@ -1,6 +1,9 @@
 mod block;
 pub use block::Block;
 
+mod constant_medium;
+pub use constant_medium::ConstantMedium;
+
 mod sphere;
 pub use sphere::Sphere;
 

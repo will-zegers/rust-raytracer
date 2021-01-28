@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::color::Color;
 
-use crate::geometry::{AxisAlignment, Block, Point3, Rect, RectCorner, Sphere, Vec3};
+use crate::geometry::{AxisAlignment, Block, ConstantMedium, Point3, Rect, RectCorner, Sphere, Vec3};
 
 use crate::hittable::HittableList;
 use crate::hittable::instance::{Rotate, Translate};
@@ -21,14 +21,14 @@ impl RandomScene {
         let mut world = HittableList::new();
 
         let ground_texture = Checker {
-            odd: Box::new(SolidColor {
+            odd: Rc::new(SolidColor {
                 color: Color::new(0.1, 0.1, 0.1),
             }),
-            even: Box::new(SolidColor {
+            even: Rc::new(SolidColor {
                 color: Color::new(0.9, 0.9, 0.9),
             }),
         };
-        let ground_material = Lambertian::new(Box::new(ground_texture));
+        let ground_material = Lambertian::new(Rc::new(ground_texture));
         let ground_sphere =
             Sphere::new(Point3::new(0., -1000., 0.), 1000., Rc::new(ground_material));
         world.add(Box::new(ground_sphere));
@@ -50,13 +50,13 @@ impl RandomScene {
                     let random_material = rng.gen::<f64>();
                     if random_material < 0.65 {
                         // diffuse
-                        let albedo = Box::new(SolidColor {
+                        let albedo = Rc::new(SolidColor {
                             color: Color::random(0., 1.) * Color::random(0., 1.),
                         });
                         material = Rc::new(Lambertian::new(albedo));
                     } else if random_material < 0.85 {
                         // metal
-                        let albedo = Box::new(SolidColor {
+                        let albedo = Rc::new(SolidColor {
                             color: Color::random(0., 1.),
                         });
                         let fuzz = rng.gen_range(0.0..0.25);
@@ -75,14 +75,14 @@ impl RandomScene {
         let sphere1 = Box::new(Sphere::new(Point3::new(0., 1., 0.), 1., material1));
         world.add(sphere1);
 
-        let color2 = Box::new(SolidColor {
+        let color2 = Rc::new(SolidColor {
             color: Color::new(0.4, 0.2, 0.1),
         });
         let material2 = Rc::new(Lambertian::new(color2));
         let sphere2 = Box::new(Sphere::new(Point3::new(-4., 1., 0.), 1., material2));
         world.add(sphere2);
 
-        let color3 = Box::new(SolidColor {
+        let color3 = Rc::new(SolidColor {
             color: Color::new(0.7, 0.6, 0.5),
         });
         let material3 = Rc::new(Metal::new(color3, 0.0));
@@ -99,7 +99,7 @@ impl PerlinSpheres {
     pub fn new() -> HittableList {
         let mut world = HittableList::new();
 
-        let texture = Box::new(Noise::new(NoiseStrategy::PerlinInterpolation, 4.));
+        let texture = Rc::new(Noise::new(NoiseStrategy::PerlinInterpolation, 4.));
         let material = Rc::new(Lambertian::new(texture));
 
         let sphere1 = Box::new(Sphere::new(
@@ -120,7 +120,7 @@ pub struct Earth;
 
 impl Earth {
     pub fn new() -> HittableList {
-        let texture = Box::new(ImageTexture::new());
+        let texture = Rc::new(ImageTexture::new());
         let surface = Rc::new(Lambertian::new(texture));
         let globe = Box::new(Sphere::new(Point3::new(0., 0., 0.), 2., surface));
 
@@ -178,13 +178,13 @@ impl SimpleColoredLights {
     }
 }
 
-pub struct CornellBox;
+struct CornellBoxBase;
 
-impl CornellBox {
+impl CornellBoxBase {
     pub fn new() -> HittableList {
         let mut world = HittableList::new();
 
-        let red = Rc::new(Lambertian::new(Box::new(SolidColor {
+        let red = Rc::new(Lambertian::new(Rc::new(SolidColor {
             color: Color::new(0.65, 0.05, 0.05),
         })));
         world.add(Box::new(Rect::new(
@@ -195,7 +195,7 @@ impl CornellBox {
             red,
         )));
 
-        let green = Rc::new(Lambertian::new(Box::new(SolidColor {
+        let green = Rc::new(Lambertian::new(Rc::new(SolidColor {
             color: Color::new(0.12, 0.45, 0.15),
         })));
         world.add(Box::new(Rect::new(
@@ -206,7 +206,7 @@ impl CornellBox {
             green,
         )));
 
-        let white = Rc::new(Lambertian::new(Box::new(SolidColor {
+        let white = Rc::new(Lambertian::new(Rc::new(SolidColor {
             color: Color::new(0.73, 0.73, 0.73),
         })));
         world.add(Box::new(Rect::new(
@@ -231,6 +231,28 @@ impl CornellBox {
             white.clone(),
         )));
 
+        let light = Rc::new(DiffuseLight::new(Color::new(15., 15., 15.)));
+        world.add(Box::new(Rect::new(
+            AxisAlignment::XZ,
+            RectCorner(343., 332.),
+            RectCorner(213., 227.),
+            554.,
+            light,
+        )));
+
+        world
+    }
+}
+
+pub struct CornellBox;
+
+impl CornellBox {
+    pub fn new() -> HittableList {
+        let mut world = CornellBoxBase::new();
+
+        let white = Rc::new(Lambertian::new(Rc::new(SolidColor {
+            color: Color::new(0.73, 0.73, 0.73),
+        })));
         let box1 = Box::new(Block::new(
             Point3::new(  0.,   0.,   0.),
             Point3::new(165., 165., 165.),
@@ -249,14 +271,38 @@ impl CornellBox {
         let box2_rt = Box::new(Translate::new(box2_r, Vec3::new(265., 0., 295.)));
         world.add(box2_rt);
 
-        let light = Rc::new(DiffuseLight::new(Color::new(15., 15., 15.)));
-        world.add(Box::new(Rect::new(
-            AxisAlignment::XZ,
-            RectCorner(343., 332.),
-            RectCorner(213., 227.),
-            554.,
-            light,
-        )));
+        world
+    }
+}
+
+pub struct CornellSmoke;
+
+impl CornellSmoke {
+    pub fn new() -> HittableList {
+        let mut world = CornellBoxBase::new();
+
+        let white = Rc::new(Lambertian::new(Rc::new(SolidColor {
+            color: Color::new(0.73, 0.73, 0.73),
+        })));
+        let box1 = Box::new(Block::new(
+            Point3::new(  0.,   0.,   0.),
+            Point3::new(165., 165., 165.),
+            white.clone(),
+        ));
+        let box1_r = Box::new(Rotate::new(box1, -18.));
+        let box1_rt = Box::new(Translate::new(box1_r, Vec3::new(130., 0., 65.)));
+        let box1_cm = Box::new(ConstantMedium::from_color(box1_rt, 0.01, Color::new(1., 1., 1.)));
+        world.add(box1_cm);
+
+        let box2 = Box::new(Block::new(
+            Point3::new(  0.,   0.,   0.),
+            Point3::new(165., 330., 165.),
+            white.clone(),
+        ));
+        let box2_r = Box::new(Rotate::new(box2, 15.));
+        let box2_rt = Box::new(Translate::new(box2_r, Vec3::new(265., 0., 295.)));
+        let box2_cm = Box::new(ConstantMedium::from_color(box2_rt, 0.01, Color::new(0., 0., 0.)));
+        world.add(box2_cm);
 
         world
     }

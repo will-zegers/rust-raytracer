@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::color::Color;
 use crate::geometry::{Point3, Ray};
 use crate::hittable::HitRecord;
@@ -5,13 +7,13 @@ use crate::material::{Material, Scatter};
 use crate::texture::{SolidColor, Texture};
 
 pub struct DiffuseLight {
-    pub emit: Box<SolidColor>,
+    pub emit: Rc<SolidColor>,
 }
 
 impl DiffuseLight {
     pub fn new(color: Color) -> DiffuseLight {
         DiffuseLight {
-            emit: Box::new(SolidColor { color }),
+            emit: Rc::new(SolidColor { color }),
         }
     }
 }

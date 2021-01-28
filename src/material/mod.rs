@@ -1,4 +1,5 @@
 // TODO: add unit tests for refract, reflect, and refectance
+use std::rc::Rc;
 
 pub mod types;
 
@@ -7,9 +8,9 @@ use crate::geometry::{Point3, Ray, Vec3};
 use crate::hittable::HitRecord;
 use crate::texture::Texture;
 
-pub struct Scatter<'a> {
+pub struct Scatter {
     pub ray: Ray,
-    pub attenuation: &'a Box<dyn Texture>,
+    pub attenuation: Rc<dyn Texture>,
 }
 
 pub trait Material {

@@ -21,7 +21,7 @@ use hittable::HittableList;
 mod material;
 
 mod scene;
-use scene::{CornellBox, Earth, PerlinSpheres, RandomScene, SimpleColoredLights, SimpleLight};
+use scene::{CornellBox, CornellSmoke, Earth, PerlinSpheres, RandomScene, SimpleColoredLights, SimpleLight};
 
 mod texture;
 
@@ -55,7 +55,7 @@ fn main() {
     let mut lookfrom = Point3::new(13., 2., 3.);
     let mut vfov = 20.;
 
-    let scene = 0;
+    let scene = 6;
     match scene {
         1 => world = PerlinSpheres::new(),
         2 => world = Earth::new(),
@@ -77,6 +77,13 @@ fn main() {
             lookfrom = Point3::new(278., 278., -800.);
             vfov = 40.;
             world = CornellBox::new();
+        }
+        6 => {
+            aspect_ratio = 1.;
+            lookat = Point3::new(278., 278., 0.);
+            lookfrom = Point3::new(278., 278., -800.);
+            vfov = 40.;
+            world = CornellSmoke::new();
         }
         _ => {
             aperture = 0.1;

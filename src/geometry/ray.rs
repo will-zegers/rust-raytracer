@@ -76,7 +76,7 @@ mod test {
     #[test]
     fn test_ray_color() {
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Lambertian::new(color));
@@ -101,7 +101,7 @@ mod test {
         let mut rec: Option<HitRecord>;
 
         let origin = Point3::new(0.0, 0.0, 0.0);
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Lambertian::new(color));

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::geometry::{RandomVectorType, Ray, Vec3};
 use crate::hittable::HitRecord;
 use crate::material;
@@ -5,12 +7,12 @@ use crate::material::{Material, Scatter};
 use crate::texture::Texture;
 
 pub struct Metal {
-    albedo: Box<dyn Texture>,
+    albedo: Rc<dyn Texture>,
     fuzz: f64,
 }
 
 impl Metal {
-    pub fn new(albedo: Box<dyn Texture>, fuzz: f64) -> Self {
+    pub fn new(albedo: Rc<dyn Texture>, fuzz: f64) -> Self {
         debug_assert!(0. <= fuzz && fuzz <= 1.);
         Self { albedo, fuzz }
     }
@@ -28,7 +30,7 @@ impl Material for Metal {
         }
         Some(Scatter {
             ray: scattered,
-            attenuation: &self.albedo,
+            attenuation: self.albedo.clone(),
         })
     }
 }
@@ -48,7 +50,7 @@ mod test {
     fn test_metal_scatter() {
         let origin = Point3::new(0.0, 0.0, 0.0);
         let fuzz = 0.5;
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Metal::new(color, fuzz));

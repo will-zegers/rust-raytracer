@@ -1,11 +1,13 @@
+use std::rc::Rc;
+
 use super::Texture;
 
 use crate::color::Color;
 use crate::geometry::Point3;
 
 pub struct Checker {
-    pub odd: Box<dyn Texture>,
-    pub even: Box<dyn Texture>,
+    pub odd: Rc<dyn Texture>,
+    pub even: Rc<dyn Texture>,
 }
 
 impl Texture for Checker {

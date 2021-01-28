@@ -111,7 +111,7 @@ mod test {
         let miss = rec.is_none();
         assert!(miss);
 
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Lambertian::new(color));
@@ -133,7 +133,7 @@ mod test {
         let mut world = HittableList::new();
         assert!(world.bounding_box().is_none());
 
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0.5, 0.5, 0.5),
         });
         let material_rc = Rc::new(Lambertian::new(color));

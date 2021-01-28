@@ -62,7 +62,7 @@ mod test {
         let t = 0.5;
         let p = Vec3::new(0.0, 0.0, -0.5);
         let normal = Vec3::new(0.0, 0.0, 1.0);
-        let color = Box::new(SolidColor {
+        let color = Rc::new(SolidColor {
             color: Color::new(0., 0., 0.),
         });
         let material_rc = Rc::new(Lambertian::new(color));
