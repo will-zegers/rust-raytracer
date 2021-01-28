@@ -4,7 +4,9 @@ use rand::Rng;
 
 use crate::color::Color;
 
-use crate::geometry::{AxisAlignment, HittableList, Point3, Rect, RectCorner, Sphere};
+use crate::geometry::{AxisAlignment, Block, HittableList, Point3, Rect, RectCorner, Sphere, Vec3};
+
+use crate::instance::{Rotate, Translate};
 
 use crate::material::types::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::material::Material;
@@ -227,6 +229,24 @@ impl CornellBox {
             555.,
             white.clone(),
         )));
+
+        let box1 = Box::new(Block::new(
+            Point3::new(  0.,   0.,   0.),
+            Point3::new(165., 165., 165.),
+            white.clone(),
+        ));
+        let box1_r = Box::new(Rotate::new(box1, -18.));
+        let box1_rt = Box::new(Translate::new(box1_r, Vec3::new(130., 0., 65.)));
+        world.add(box1_rt);
+
+        let box2 = Box::new(Block::new(
+            Point3::new(  0.,   0.,   0.),
+            Point3::new(165., 330., 165.),
+            white.clone(),
+        ));
+        let box2_r = Box::new(Rotate::new(box2, 15.));
+        let box2_rt = Box::new(Translate::new(box2_r, Vec3::new(265., 0., 295.)));
+        world.add(box2_rt);
 
         let light = Rc::new(DiffuseLight::new(Color::new(15., 15., 15.)));
         world.add(Box::new(Rect::new(

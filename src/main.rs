@@ -15,6 +15,8 @@ use color::Color;
 mod geometry;
 use geometry::{HittableList, Point3, Vec3};
 
+mod instance;
+
 mod material;
 
 mod scene;

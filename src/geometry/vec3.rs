@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Index, Mul, Neg, Sub};
+use std::ops::{Add, Div, Index, IndexMut, Mul, Neg, Sub};
 
 use rand::Rng;
 
@@ -115,6 +115,17 @@ impl Div<f64> for Vec3 {
 
     fn div(self, rhs: f64) -> Vec3 {
         &self / rhs
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, i: usize) -> &mut Self::Output {
+        match i {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("invalid vector index: {:?}", i),
+        }
     }
 }
 

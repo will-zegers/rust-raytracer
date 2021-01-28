@@ -1,6 +1,9 @@
 mod aabb;
 pub use aabb::AABB;
 
+mod block;
+pub use block::Block;
+
 mod bvh;
 pub use bvh::BVHNode;
 
