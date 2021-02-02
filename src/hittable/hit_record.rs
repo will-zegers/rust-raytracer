@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use crate::material::Material;
 use crate::geometry::{Point3, Ray, Vec3};
+use crate::material::Material;
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -49,8 +49,8 @@ mod test {
     use super::*;
 
     use crate::color::Color;
-    use crate::texture::SolidColor;
     use crate::material::types::Lambertian;
+    use crate::texture::SolidColor;
 
     #[test]
     fn test_hitrecord_new() {

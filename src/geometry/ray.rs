@@ -48,8 +48,8 @@ mod test {
 
     use super::*;
 
-    use crate::hittable::HitRecord;
     use crate::geometry::Sphere;
+    use crate::hittable::HitRecord;
     use crate::material::types::Lambertian;
     use crate::texture::SolidColor;
 

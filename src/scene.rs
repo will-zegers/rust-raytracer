@@ -4,10 +4,12 @@ use rand::Rng;
 
 use crate::color::Color;
 
-use crate::geometry::{AxisAlignment, Block, ConstantMedium, Point3, Rect, RectCorner, Sphere, Vec3};
+use crate::geometry::{
+    AxisAlignment, Block, ConstantMedium, Point3, Rect, RectCorner, Sphere, Vec3,
+};
 
-use crate::hittable::HittableList;
 use crate::hittable::instance::{Rotate, Translate};
+use crate::hittable::HittableList;
 
 use crate::material::types::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::material::Material;
@@ -254,7 +256,7 @@ impl CornellBox {
             color: Color::new(0.73, 0.73, 0.73),
         })));
         let box1 = Box::new(Block::new(
-            Point3::new(  0.,   0.,   0.),
+            Point3::new(0., 0., 0.),
             Point3::new(165., 165., 165.),
             white.clone(),
         ));
@@ -263,7 +265,7 @@ impl CornellBox {
         world.add(box1_rt);
 
         let box2 = Box::new(Block::new(
-            Point3::new(  0.,   0.,   0.),
+            Point3::new(0., 0., 0.),
             Point3::new(165., 330., 165.),
             white.clone(),
         ));
@@ -285,24 +287,167 @@ impl CornellSmoke {
             color: Color::new(0.73, 0.73, 0.73),
         })));
         let box1 = Box::new(Block::new(
-            Point3::new(  0.,   0.,   0.),
+            Point3::new(0., 0., 0.),
             Point3::new(165., 165., 165.),
             white.clone(),
         ));
         let box1_r = Box::new(Rotate::new(box1, -18.));
         let box1_rt = Box::new(Translate::new(box1_r, Vec3::new(130., 0., 65.)));
-        let box1_cm = Box::new(ConstantMedium::from_color(box1_rt, 0.01, Color::new(1., 1., 1.)));
+        let box1_cm = Box::new(ConstantMedium::from_color(
+            box1_rt,
+            0.01,
+            Color::new(1., 1., 1.),
+        ));
         world.add(box1_cm);
 
         let box2 = Box::new(Block::new(
-            Point3::new(  0.,   0.,   0.),
+            Point3::new(0., 0., 0.),
             Point3::new(165., 330., 165.),
             white.clone(),
         ));
         let box2_r = Box::new(Rotate::new(box2, 15.));
         let box2_rt = Box::new(Translate::new(box2_r, Vec3::new(265., 0., 295.)));
-        let box2_cm = Box::new(ConstantMedium::from_color(box2_rt, 0.01, Color::new(0., 0., 0.)));
+        let box2_cm = Box::new(ConstantMedium::from_color(
+            box2_rt,
+            0.01,
+            Color::new(0., 0., 0.),
+        ));
         world.add(box2_cm);
+
+        world
+    }
+}
+
+pub struct FinalScene;
+
+impl FinalScene {
+    pub fn new() -> HittableList {
+        let mut rng = rand::thread_rng();
+
+        let ground = Rc::new(Lambertian::from_color(Color::new(0.48, 0.83, 0.53)));
+
+        let boxes_per_side = 20;
+        let mut boxes = HittableList::new();
+        for i in 0..boxes_per_side {
+            let i = i as f64;
+            for j in 0..boxes_per_side {
+                let j = j as f64;
+
+                let w = 100.;
+                let x0 = -1000. + i * w;
+                let z0 = -1000. + j * w;
+                let y0 = 0.;
+                let x1 = x0 + w;
+                let y1 = rng.gen_range(1. ..101.);
+                let z1 = z0 + w;
+
+                let block = Block::new(
+                    Point3::new(x0, y0, z0),
+                    Point3::new(x1, y1, z1),
+                    ground.clone(),
+                );
+                boxes.add(Box::new(block));
+            }
+        }
+
+        let mut world = HittableList::new();
+        world.add(Box::new(boxes));
+
+        let light = DiffuseLight::new(Color::new(7., 7., 7.));
+        let rect_light = Rect::new(
+            AxisAlignment::XZ,
+            RectCorner(423., 412.),
+            RectCorner(123., 147.),
+            554.,
+            Rc::new(light),
+        );
+        world.add(Box::new(rect_light));
+
+        let radius_chrome = 50.;
+        let center_chrome = Point3::new(400., 400., 400.);
+        let material_chrome = Metal::new(
+            Rc::new(SolidColor {
+                color: Color::new(0.7, 0.6, 0.5),
+            }),
+            0.0,
+        );
+        let sphere_chrome = Sphere::new(center_chrome, radius_chrome, Rc::new(material_chrome));
+        world.add(Box::new(sphere_chrome));
+
+        let radius_glass = 50.;
+        let center_glass = Point3::new(260., 150., 45.);
+        let material_glass = Dielectric::new(1.5);
+        let material_glass_ptr = Rc::new(material_glass);
+        let sphere_glass = Sphere::new(center_glass, radius_glass, material_glass_ptr.clone());
+        world.add(Box::new(sphere_glass));
+
+        let radius_brushed = 50.;
+        let center_brushed = Point3::new(0., 150., 145.);
+        let material_brushed = Metal::new(
+            Rc::new(SolidColor {
+                color: Color::new(0.8, 0.8, 0.9),
+            }),
+            1.0,
+        );
+        let sphere_brushed = Sphere::new(center_brushed, radius_brushed, Rc::new(material_brushed));
+        world.add(Box::new(sphere_brushed));
+
+        let radius_boundary = 70.;
+        let center_boundary = Point3::new(360., 150., 145.);
+        let sphere_boundary =
+            Sphere::new(center_boundary, radius_boundary, material_glass_ptr.clone());
+        world.add(Box::new(sphere_boundary.clone()));
+
+        let medium =
+            ConstantMedium::from_color(Box::new(sphere_boundary), 0.2, Color::new(0.2, 0.4, 0.9));
+        world.add(Box::new(medium));
+
+        let radius_boundary2 = 5000.;
+        let center_boundary2 = Point3::new(0., 0., 0.);
+        let sphere_boundary2 = Sphere::new(
+            center_boundary2,
+            radius_boundary2,
+            material_glass_ptr.clone(),
+        );
+        let medium2 =
+            ConstantMedium::from_color(Box::new(sphere_boundary2), 0.0001, Color::new(1., 1., 1.));
+        world.add(Box::new(medium2));
+
+        let radius_earth = 100.;
+        let center_earth = Point3::new(400., 200., 400.);
+        let texture_earth = ImageTexture::new();
+        let material_earth = Lambertian::new(Rc::new(texture_earth));
+        let sphere_earth = Sphere::new(center_earth, radius_earth, Rc::new(material_earth));
+        world.add(Box::new(sphere_earth));
+
+        world.add(Box::new(Sphere::new(
+            Point3::new(220., 280., 300.),
+            80.,
+            Rc::new(Lambertian::new(Rc::new(Noise::new(
+                NoiseStrategy::PerlinInterpolation,
+                0.1,
+            )))),
+        )));
+
+        let mut boxes2 = HittableList::new();
+        let white = Rc::new(Lambertian::new(Rc::new(SolidColor {
+            color: Color::new(0.73, 0.73, 0.73),
+        })));
+        for _ in 0..1000 {
+            boxes2.add(Box::new(Sphere::new(
+                Point3::new(
+                    rng.gen_range(1. ..165.),
+                    rng.gen_range(1. ..165.),
+                    rng.gen_range(1. ..165.),
+                ),
+                10.,
+                white.clone(),
+            )));
+        }
+        world.add(Box::new(Translate::new(
+            Box::new(Rotate::new(Box::new(boxes2), 15.)),
+            Vec3::new(-100., 270., 395.),
+        )));
 
         world
     }

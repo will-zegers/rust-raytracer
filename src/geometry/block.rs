@@ -1,9 +1,7 @@
 use std::rc::Rc;
 
-use crate::hittable::{AABB, HitRecord, Hittable, HittableList};
-use super::{
-    AxisAlignment, Point3, Ray, Rect, RectCorner,
-};
+use super::{AxisAlignment, Point3, Ray, Rect, RectCorner};
+use crate::hittable::{HitRecord, Hittable, HittableList, AABB};
 
 use crate::material::Material;
 

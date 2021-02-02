@@ -5,9 +5,9 @@ use rand::Rng;
 
 use crate::color::Color;
 use crate::geometry::{Ray, Vec3};
-use crate::hittable::{AABB, HitRecord, Hittable};
-use crate::material::Material;
+use crate::hittable::{HitRecord, Hittable, AABB};
 use crate::material::types::Isotropic;
+use crate::material::Material;
 
 pub struct ConstantMedium {
     boundary: Box<dyn Hittable>,
@@ -33,7 +33,7 @@ impl Hittable for ConstantMedium {
             Some(rec) => rec,
             None => return None,
         };
-        let mut rec2 = match self.boundary.hit(ray, rec1.t+0.0001, INFINITY) {
+        let mut rec2 = match self.boundary.hit(ray, rec1.t + 0.0001, INFINITY) {
             Some(rec) => rec,
             None => return None,
         };

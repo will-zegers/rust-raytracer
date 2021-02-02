@@ -1,9 +1,10 @@
 use std::rc::Rc;
 
+use crate::color::Color;
 use crate::geometry::{RandomVectorType, Ray, Vec3};
 use crate::hittable::HitRecord;
 use crate::material::{Material, Scatter};
-use crate::texture::Texture;
+use crate::texture::{SolidColor, Texture};
 
 pub struct Lambertian {
     albedo: Rc<dyn Texture>,
@@ -12,6 +13,12 @@ pub struct Lambertian {
 impl Lambertian {
     pub fn new(albedo: Rc<dyn Texture>) -> Self {
         Self { albedo }
+    }
+
+    pub fn from_color(color: Color) -> Self {
+        Self {
+            albedo: Rc::new(SolidColor { color }),
+        }
     }
 }
 

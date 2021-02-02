@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::geometry::{Point3, Ray, Vec3};
-use crate::hittable::{AABB, HitRecord, Hittable};
+use crate::hittable::{HitRecord, Hittable, AABB};
 use crate::material::Material;
 
 #[derive(Clone, Copy)]

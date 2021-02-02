@@ -1,7 +1,10 @@
 use crate::geometry::Ray;
 
-pub mod aabb;
+mod aabb;
 pub use aabb::AABB;
+
+mod bvh;
+pub use bvh::BVHNode;
 
 pub mod instance;
 

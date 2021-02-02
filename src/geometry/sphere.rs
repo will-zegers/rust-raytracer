@@ -1,10 +1,11 @@
 use std::f64::consts::PI;
 use std::rc::Rc;
 
-use crate::hittable::{AABB, HitRecord, Hittable};
 use super::{Point3, Ray, Vec3};
+use crate::hittable::{HitRecord, Hittable, AABB};
 use crate::material::Material;
 
+#[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
@@ -77,12 +78,12 @@ impl Hittable for Sphere {
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
     use super::*;
     use crate::color::Color;
     use crate::geometry::{Point3, Ray, Vec3};
     use crate::material::types::Lambertian;
     use crate::texture::SolidColor;
+    use std::rc::Rc;
 
     #[test]
     fn test_sphere_hit() {

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // TODO: add unit tests
 
 use crate::geometry::{Point3, Ray};

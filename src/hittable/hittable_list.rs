@@ -1,5 +1,5 @@
-use super::{AABB, HitRecord, Hittable};
-use crate::geometry::{Ray, Point3};
+use super::{HitRecord, Hittable, AABB};
+use crate::geometry::{Point3, Ray};
 
 pub struct HittableList {
     bbox: AABB,
