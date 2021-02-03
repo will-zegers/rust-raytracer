@@ -9,7 +9,7 @@ use crate::geometry::{
 };
 
 use crate::hittable::instance::{Rotate, Translate};
-use crate::hittable::HittableList;
+use crate::hittable::{BVHNode, Hittable, HittableList};
 
 use crate::material::types::{Dielectric, DiffuseLight, Lambertian, Metal};
 use crate::material::Material;
@@ -327,7 +327,7 @@ impl FinalScene {
         let ground = Rc::new(Lambertian::from_color(Color::new(0.48, 0.83, 0.53)));
 
         let boxes_per_side = 20;
-        let mut boxes = HittableList::new();
+        let mut boxes = Vec::<Rc<dyn Hittable>>::with_capacity(boxes_per_side);
         for i in 0..boxes_per_side {
             let i = i as f64;
             for j in 0..boxes_per_side {
@@ -346,12 +346,12 @@ impl FinalScene {
                     Point3::new(x1, y1, z1),
                     ground.clone(),
                 );
-                boxes.add(Box::new(block));
+                boxes.push(Rc::new(block));
             }
         }
 
         let mut world = HittableList::new();
-        world.add(Box::new(boxes));
+        world.add(Box::new(BVHNode::new(&boxes, 0, boxes.len())));
 
         let light = DiffuseLight::new(Color::new(7., 7., 7.));
         let rect_light = Rect::new(
@@ -367,7 +367,7 @@ impl FinalScene {
         let center_chrome = Point3::new(400., 400., 400.);
         let material_chrome = Metal::new(
             Rc::new(SolidColor {
-                color: Color::new(0.7, 0.6, 0.5),
+                color: Color::new(0.8, 0.15, 0.15),
             }),
             0.0,
         );
@@ -429,12 +429,12 @@ impl FinalScene {
             )))),
         )));
 
-        let mut boxes2 = HittableList::new();
+        let mut boxes2 = Vec::<Rc<dyn Hittable>>::with_capacity(1000);
         let white = Rc::new(Lambertian::new(Rc::new(SolidColor {
             color: Color::new(0.73, 0.73, 0.73),
         })));
         for _ in 0..1000 {
-            boxes2.add(Box::new(Sphere::new(
+            boxes2.push(Rc::new(Sphere::new(
                 Point3::new(
                     rng.gen_range(1. ..165.),
                     rng.gen_range(1. ..165.),
@@ -445,7 +445,7 @@ impl FinalScene {
             )));
         }
         world.add(Box::new(Translate::new(
-            Box::new(Rotate::new(Box::new(boxes2), 15.)),
+            Box::new(Rotate::new(Box::new(BVHNode::new(&boxes2, 0, boxes2.len())), 15.)),
             Vec3::new(-100., 270., 395.),
         )));
 
