@@ -367,9 +367,9 @@ impl FinalScene {
         let center_chrome = Point3::new(400., 400., 400.);
         let material_chrome = Metal::new(
             Rc::new(SolidColor {
-                color: Color::new(0.8, 0.15, 0.15),
+                color: Color::new(0.8, 0.8, 0.15),
             }),
-            0.0,
+            0.2,
         );
         let sphere_chrome = Sphere::new(center_chrome, radius_chrome, Rc::new(material_chrome));
         world.add(Box::new(sphere_chrome));
